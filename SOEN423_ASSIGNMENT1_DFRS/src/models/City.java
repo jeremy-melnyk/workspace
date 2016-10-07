@@ -1,6 +1,10 @@
 package models;
 
-public class City {
+import java.io.Serializable;
+
+public class City implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
 	private String name;
 	private String acronym;
 
@@ -55,5 +59,11 @@ public class City {
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "City [name=" + name + ", acronym=" + acronym + "]";
 	}
 }

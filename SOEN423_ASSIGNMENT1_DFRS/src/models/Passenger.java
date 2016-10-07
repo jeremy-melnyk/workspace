@@ -1,6 +1,8 @@
 package models;
 
 public class Passenger extends Person {
+	
+	private static final long serialVersionUID = 1L;
 	private String phoneNumber;
 	private Address address;
 	
@@ -27,29 +29,33 @@ public class Passenger extends Person {
 	}
 
 	@Override
-	public int hashCode() {
+	public int hashCode()
+	{
 		final int prime = 31;
-		int result = 1;
+		int result = super.hashCode();
 		result = prime * result + ((address == null) ? 0 : address.hashCode());
 		result = prime * result + ((phoneNumber == null) ? 0 : phoneNumber.hashCode());
 		return result;
 	}
-	
+
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(Object obj)
+	{
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		Passenger other = (Passenger) obj;
-		if (address == null) {
+		if (address == null)
+		{
 			if (other.address != null)
 				return false;
 		} else if (!address.equals(other.address))
 			return false;
-		if (phoneNumber == null) {
+		if (phoneNumber == null)
+		{
 			if (other.phoneNumber != null)
 				return false;
 		} else if (!phoneNumber.equals(other.phoneNumber))

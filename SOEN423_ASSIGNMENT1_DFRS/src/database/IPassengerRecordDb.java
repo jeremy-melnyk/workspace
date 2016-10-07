@@ -1,16 +1,23 @@
 package database;
 import java.util.List;
 
-import models.Passenger;
+import enums.FlightClass;
 import models.PassengerRecord;
 
 public interface IPassengerRecordDb {
-	public boolean addRecord(PassengerRecord passengerRecord);
 	
-	public PassengerRecord retrieveRecord(int recordId);
+	public int numberOfRecords();
+	public int numberOfRecords(FlightClass flightClass);
+	
+	public boolean addRecord(PassengerRecord passengerRecord);
+	public PassengerRecord getRecord(int recordId);
 	public PassengerRecord removeRecord(int recordId);
 	
-	public List<PassengerRecord> retrieveRecords(Passenger passenger);
-	public List<PassengerRecord> retrieveRecords(char character);
-	public List<PassengerRecord> removeRecords(Passenger passenger);
+	public List<PassengerRecord> getRecords();
+	public List<PassengerRecord> getRecords(FlightClass flightClass);
+	public List<PassengerRecord> getRecords(char character);
+	
+	public List<PassengerRecord> removeRecords();
+	public List<PassengerRecord> removeRecords(FlightClass flightClass);
+	public List<PassengerRecord> removeRecords(char character);
 }

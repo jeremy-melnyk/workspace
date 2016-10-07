@@ -1,238 +1,283 @@
 package database;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import concurrent.ConcurrentDb;
+import enums.FlightClass;
+import models.Flight;
 import models.Passenger;
 import models.PassengerRecord;
 
-public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordDb {
-	private ReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
-	private HashMap<Character, List<PassengerRecord>> passengerRecords;
-
+public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordDb
+{
+	private int RECORD_ID;
+	private HashMap<Character, HashMap<Integer, PassengerRecord>> outerRecords;
+	
 	public PassengerRecordDb() {
-		this.passengerRecords = new HashMap<Character, List<PassengerRecord>>();
+		super();
+		this.RECORD_ID = 0;
+		this.outerRecords = new HashMap<Character, HashMap<Integer, PassengerRecord>>();
 	}
 
 	@Override
-	public boolean addRecord(PassengerRecord passengerRecord) {
-		if (passengerRecord == null) {
+	public int numberOfRecords()
+	{
+		int count = 0;
+		requestRead();
+		try{
+			Set<Character> outerKeys = this.outerRecords.keySet();
+			for (Character outerKey : outerKeys)
+			{
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+				count += innerRecords.size();
+			}
+		} finally{
+			releaseRead();	
+		} 
+		return count;
+	}
+
+	@Override
+	public int numberOfRecords(FlightClass flightClass)
+	{
+		int count = 0;
+		requestRead();
+		try{
+			Set<Character> outerKeys = this.outerRecords.keySet();
+			for (Character outerKey : outerKeys)
+			{
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+				Set<Integer> innerKeys = innerRecords.keySet();
+				for (Integer innerKey : innerKeys)
+				{
+					PassengerRecord record = innerRecords.get(innerKey);
+					Flight flight = record.getFlight();
+					if(flight.getFlightClass().equals(flightClass)){
+						++count;
+					}
+				}
+			}
+		} finally{
+			releaseRead();	
+		} 
+		return count;
+	}
+
+	@Override
+	public boolean addRecord(PassengerRecord passengerRecord)
+	{
+		if(passengerRecord == null){
 			return false;
 		}
-
+		
 		Passenger passenger = passengerRecord.getPassenger();
-		if (passenger == null) {
-			return false;
-		}
-
 		String lastName = passenger.getLastName();
-		if (lastName == null || lastName.length() < 1) {
+		if(lastName.length() < 1){
 			return false;
 		}
-
-		char firstLetter = Character.toUpperCase(lastName.charAt(0));
-		List<PassengerRecord> passengerRecordList = null;
-		readWriteLock.writeLock().lock();
-		try {
-			if (this.passengerRecords.containsKey(firstLetter)) {
-				readWriteLock.writeLock().unlock();
-				passengerRecordList = this.passengerRecords.get(firstLetter);
-				readWriteLock.writeLock().lock();
-				if (!passengerRecordList.contains(passengerRecord)) {
-					passengerRecordList.add(passengerRecord);
-				} else {
-					// Record already exists.
-					return false;
+		
+		char firstLetter = (char) lastName.charAt(0);
+		// TODO : PassengerRecordDb can't acquire seat on flight if it is currently being modified by a manager.
+		requestWrite();
+		try{
+			if(!this.outerRecords.containsKey(firstLetter)){
+				HashMap<Integer, PassengerRecord> innerRecords = new HashMap<Integer, PassengerRecord>();
+				Flight flight = passengerRecord.getFlight();
+				if(flight.acquireSeat()){
+					innerRecords.put(this.RECORD_ID++, passengerRecord);
+					this.outerRecords.put(firstLetter, innerRecords);
+					return true;
 				}
 			} else {
-				passengerRecordList = new ArrayList<PassengerRecord>();
-				passengerRecordList.add(passengerRecord);
-				this.passengerRecords.put(firstLetter, passengerRecordList);
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(firstLetter);
+				if(!innerRecords.containsValue(passengerRecord)){
+					Flight flight = passengerRecord.getFlight();
+					if(flight.acquireSeat()){
+						innerRecords.put(this.RECORD_ID++, passengerRecord);
+						return true;
+					}
+				}	
 			}
-			return true;
-		} finally {
-			readWriteLock.writeLock().unlock();
-		}
+		} finally{
+			releaseWrite();	
+		} 
+		return false;
 	}
 
 	@Override
-	public List<PassengerRecord> retrieveRecords(char character) {
-		char firstLetter = Character.toUpperCase(character);
-		readWriteLock.readLock().lock();
-		try {
-			if (this.passengerRecords.containsKey(firstLetter)) {
-				return this.passengerRecords.get(firstLetter);
-			}
+	public PassengerRecord getRecord(int recordId)
+	{
+		if(recordId < 0){
 			return null;
-		} finally {
-			readWriteLock.readLock().unlock();
 		}
+		
+		requestRead();
+		try{
+			Set<Character> outerKeys = this.outerRecords.keySet();
+			for (Character outerKey : outerKeys)
+			{
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+				return innerRecords.get(recordId);
+			}
+		} finally{
+			releaseRead();	
+		} 
+		return null;
 	}
 
 	@Override
-	public PassengerRecord retrieveRecord(int recordId) {
-		if (recordId < 0) {
+	public PassengerRecord removeRecord(int recordId)
+	{
+		if(recordId < 0){
 			return null;
 		}
-
-		readWriteLock.readLock().lock();
-		try {
-			Set<Character> passengerRecordsKeys = this.passengerRecords.keySet();
-			for (char key : passengerRecordsKeys) {
-				List<PassengerRecord> passengerRecordList = this.passengerRecords.get(key);
-				if (passengerRecordList == null) {
-					continue;
-				}
-				int passengerRecordsListSize = passengerRecordList.size();
-				for (int j = 0; j < passengerRecordsListSize; ++j) {
-					PassengerRecord passengerRecord = passengerRecordList.get(j);
-					if (passengerRecord == null) {
-						continue;
-					}
-					if (passengerRecord.getRecordId() == recordId) {
-						return passengerRecord;
-					}
-				}
+		
+		requestWrite();
+		try{
+			Set<Character> outerKeys = this.outerRecords.keySet();
+			for (Character outerKey : outerKeys)
+			{
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+				return innerRecords.remove(recordId);
 			}
-			return null;
-		} finally {
-			readWriteLock.readLock().unlock();
-		}
+		} finally{
+			releaseWrite();	
+		} 
+		return null;
 	}
 
 	@Override
-	public PassengerRecord removeRecord(int recordId) {
-		if (recordId < 0) {
-			return null;
-		}
-
-		readWriteLock.readLock().lock();
-		try {
-			int passengerRecordsSize = this.passengerRecords.size();
-			for (int i = 0; i < passengerRecordsSize; ++i) {
-				List<PassengerRecord> passengerRecordList = this.passengerRecords.get(i);
-				if (passengerRecordList == null) {
-					continue;
+	public List<PassengerRecord> getRecords()
+	{
+		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
+		requestRead();
+		try{
+			Set<Character> outerKeys = this.outerRecords.keySet();
+			for (Character outerKey : outerKeys)
+			{
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+				Set<Integer> innerKeys = innerRecords.keySet();
+				for (Integer innerKey : innerKeys)
+				{
+					PassengerRecord record = innerRecords.get(innerKey);
+					passengerRecords.add(record);
 				}
-				int passengerRecordsListSize = passengerRecordList.size();
-				for (int j = 0; j < passengerRecordsListSize; ++j) {
-					PassengerRecord passengerRecord = passengerRecordList.get(j);
-					if (passengerRecord == null) {
-						continue;
-					}
-					if (passengerRecord.getRecordId() == recordId) {
-						readWriteLock.readLock().unlock();
-						readWriteLock.writeLock().lock();
-						PassengerRecord foundPassengerRecord = passengerRecordList.remove(j);
-						readWriteLock.readLock().lock();
-						readWriteLock.writeLock().unlock();
-						return foundPassengerRecord;
+			}
+		} finally{
+			releaseRead();	
+		} 
+		return passengerRecords;
+	}
+	
+	@Override
+	public List<PassengerRecord> getRecords(FlightClass flightClass)
+	{
+		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
+		requestRead();
+		try{
+			Set<Character> outerKeys = this.outerRecords.keySet();
+			for (Character outerKey : outerKeys)
+			{
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+				Set<Integer> innerKeys = innerRecords.keySet();
+				for (Integer innerKey : innerKeys)
+				{
+					PassengerRecord record = innerRecords.get(innerKey);
+					Flight flight = record.getFlight();
+					if(flight.getFlightClass().equals(flightClass)){
+						passengerRecords.add(record);
 					}
 				}
 			}
-			return null;
-		} finally {
-			readWriteLock.readLock().unlock();
-		}
+		} finally{
+			releaseRead();	
+		} 
+		return passengerRecords;
 	}
 
 	@Override
-	public List<PassengerRecord> retrieveRecords(Passenger passenger) {
-		if (passenger == null) {
-			return null;
-		}
-
-		String firstName = passenger.getFirstName();
-		if (firstName == null || firstName.length() < 1) {
-			return null;
-		}
-
-		String lastName = passenger.getLastName();
-		if (lastName == null || lastName.length() < 1) {
-			return null;
-		}
-
-		List<PassengerRecord> passengerRecordsForPassenger = new ArrayList<PassengerRecord>();
-		char firstLetter = Character.toUpperCase(lastName.charAt(0));
-		readWriteLock.readLock().lock();
-		try {
-			if (this.passengerRecords.containsKey(firstLetter)) {
-				List<PassengerRecord> passengerRecordList = this.passengerRecords.get(firstLetter);
-				for (PassengerRecord passengerRecord : passengerRecordList) {
-					Passenger passengerOnRecord = passengerRecord.getPassenger();
-					if (passengerOnRecord == null) {
-						continue;
-					}
-					String passengerOnRecordFirstName = passengerOnRecord.getFirstName();
-					String passengerOnRecordLastName = passengerOnRecord.getLastName();
-
-					if (passengerOnRecordFirstName != null && passengerOnRecordLastName != null) {
-						if (firstName.equals(passengerOnRecordFirstName)
-								&& lastName.equals(passengerOnRecordLastName)) {
-							passengerRecordsForPassenger.add(passengerRecord);
-						}
-					}
-				}
+	public List<PassengerRecord> getRecords(char character)
+	{
+		character = Character.toUpperCase(character);
+		List<PassengerRecord> passengerRecords = null;
+		requestRead();
+		try{
+			if(this.outerRecords.containsKey(character)){
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(character);
+				passengerRecords = new ArrayList<PassengerRecord>(innerRecords.values());
 			}
-			return passengerRecordsForPassenger;
-		} finally {
-			readWriteLock.readLock().unlock();
-		}
+		} finally{
+			releaseRead();	
+		} 
+		return passengerRecords;
 	}
 
 	@Override
-	public List<PassengerRecord> removeRecords(Passenger passenger) {
-		if (passenger == null) {
-			return null;
-		}
+	public List<PassengerRecord> removeRecords()
+	{
+		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
+		requestWrite();
+		try{
+			Set<Character> outerKeys = this.outerRecords.keySet();
+			for (Character outerKey : outerKeys)
+			{
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+				Set<Integer> innerKeys = innerRecords.keySet();
+				for (Integer innerKey : innerKeys)
+				{
+					PassengerRecord record = innerRecords.remove(innerKey);
+					passengerRecords.add(record);
+				}
+			}
+		} finally{
+			releaseWrite();	
+		} 
+		return passengerRecords;
+	}
 
-		String firstName = passenger.getFirstName();
-		if (firstName == null || firstName.length() < 1) {
-			return null;
-		}
-
-		String lastName = passenger.getLastName();
-		if (lastName == null || lastName.length() < 1) {
-			return null;
-		}
-
-		List<PassengerRecord> passengerRecordsForPassenger = new ArrayList<PassengerRecord>();
-		char firstLetter = Character.toUpperCase(lastName.charAt(0));
-		readWriteLock.readLock().lock();
-		try {
-			if (this.passengerRecords.containsKey(firstLetter)) {
-				List<PassengerRecord> passengerRecordList = this.passengerRecords.get(firstLetter);
-				int passengerRecordListSize = passengerRecordList.size();
-				for (int i = passengerRecordListSize - 1; i >= 0; --i) {
-					PassengerRecord passengerRecord = passengerRecordList.get(i);
-					if (passengerRecord == null) {
-						continue;
-					}
-					Passenger passengerOnRecord = passengerRecord.getPassenger();
-					if (passengerOnRecord == null) {
-						continue;
-					}
-					String passengerOnRecordFirstName = passengerOnRecord.getFirstName();
-					String passengerOnRecordLastName = passengerOnRecord.getLastName();
-					if (passengerOnRecordFirstName != null && passengerOnRecordLastName != null) {
-						if (firstName.equals(passengerOnRecordFirstName)
-								&& lastName.equals(passengerOnRecordLastName)) {
-							readWriteLock.readLock().unlock();
-							readWriteLock.writeLock().lock();
-							passengerRecordsForPassenger.add(passengerRecordList.remove(i));
-							readWriteLock.readLock().lock();
-							readWriteLock.writeLock().unlock();
-						}
+	@Override
+	public List<PassengerRecord> removeRecords(FlightClass flightClass)
+	{
+		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
+		requestWrite();
+		try{
+			Set<Character> outerKeys = this.outerRecords.keySet();
+			for (Character outerKey : outerKeys)
+			{
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+				Set<Integer> innerKeys = innerRecords.keySet();
+				for (Integer innerKey : innerKeys)
+				{
+					PassengerRecord record = innerRecords.get(innerKey);
+					Flight flight = record.getFlight();
+					if(flight.getFlightClass().equals(flightClass)){
+						passengerRecords.add(innerRecords.remove(record));
 					}
 				}
 			}
-			return passengerRecordsForPassenger;
-		} finally {
-			readWriteLock.readLock().unlock();
-		}
+		} finally{
+			releaseWrite();	
+		} 
+		return passengerRecords;
+	}
+
+	@Override	
+	public List<PassengerRecord> removeRecords(char character)
+	{
+		character = Character.toUpperCase(character);
+		List<PassengerRecord> passengerRecords = null;
+		requestWrite();
+		try{
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.remove(character);
+			if(innerRecords != null){
+				passengerRecords = new ArrayList<PassengerRecord>(innerRecords.values());
+			}
+		} finally{
+			releaseWrite();	
+		} 
+		return passengerRecords;
 	}
 }
