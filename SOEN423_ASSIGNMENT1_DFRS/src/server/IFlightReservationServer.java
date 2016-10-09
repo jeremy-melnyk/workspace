@@ -12,7 +12,7 @@ import models.FlightServerAddress;
 public interface IFlightReservationServer extends Remote
 {	
 	public boolean bookFlight(String firstName, String lastName, Address address, String phoneNumber, Flight flight) throws RemoteException;
-	public int getBookedFlightCount(FlightClass flightClass) throws RemoteException;
+	public String getBookedFlightCount(FlightClass flightClass) throws RemoteException;
 	public boolean editFlightRecord(Flight flight) throws RemoteException;
 	
 	public List<Flight> getFlights() throws RemoteException;

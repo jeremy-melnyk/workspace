@@ -29,9 +29,9 @@ public class DistributedServer
 			FlightDb washingtonFlights = new FlightDb();
 			FlightDb newDelhiFlights = new FlightDb();
 			
-			FlightServerAddress montrealAddress = new FlightServerAddress(UDP_PORT_MTL, "localhost");
-			FlightServerAddress washingtonAddress = new FlightServerAddress(UDP_PORT_WST, "localhost");
-			FlightServerAddress newDelhiAddress = new FlightServerAddress(UDP_PORT_NDL, "localhost");
+			FlightServerAddress montrealAddress = new FlightServerAddress("MTL", UDP_PORT_MTL, "localhost");
+			FlightServerAddress washingtonAddress = new FlightServerAddress("WST", UDP_PORT_WST, "localhost");
+			FlightServerAddress newDelhiAddress = new FlightServerAddress("NDL", UDP_PORT_NDL, "localhost");
 			
 			List<FlightServerAddress> othersForMontreal = new ArrayList<FlightServerAddress>();
 			othersForMontreal.add(washingtonAddress);

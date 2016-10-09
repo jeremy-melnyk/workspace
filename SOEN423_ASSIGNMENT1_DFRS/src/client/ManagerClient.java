@@ -15,7 +15,7 @@ public class ManagerClient extends Client
 		super(baseUrl);
 	}
 
-	public int getBookedFlightCount(FlightClass flightClass)
+	public String getBookedFlightCount(FlightClass flightClass)
 	{
 		try
 		{
@@ -24,7 +24,7 @@ public class ManagerClient extends Client
 		} catch (Exception e)
 		{
 			e.printStackTrace();
-			return 0;
+			return null;
 		}
 	}
 }

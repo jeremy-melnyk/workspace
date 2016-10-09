@@ -2,13 +2,25 @@ package models;
 
 public class FlightServerAddress
 {
+	private String name;
 	private int udpPort;
 	private String host;
 
-	public FlightServerAddress(int udpPort, String host) {
+	public FlightServerAddress(String name, int udpPort, String host) {
 		super();
+		this.name = name;
 		this.udpPort = udpPort;
 		this.host = host;
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public void setName(String name)
+	{
+		this.name = name;
 	}
 
 	public int getUdpPort()
@@ -30,5 +42,4 @@ public class FlightServerAddress
 	{
 		this.host = host;
 	}
-
 }

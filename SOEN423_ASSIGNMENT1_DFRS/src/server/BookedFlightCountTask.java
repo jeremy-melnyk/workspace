@@ -8,10 +8,11 @@ import java.net.SocketException;
 import java.util.concurrent.Callable;
 
 import enums.FlightClass;
+import models.FlightCountResult;
 import models.FlightServerAddress;
 import server.IFlightReservationServer;
 
-public class BookedFlightCountTask implements Callable<Integer>
+public class BookedFlightCountTask implements Callable<FlightCountResult>
 {
 	private final int BUFFER_SIZE = 1000;
 	private final FlightServerAddress flightServerAddress;
@@ -23,12 +24,12 @@ public class BookedFlightCountTask implements Callable<Integer>
 	}
 
 	@Override
-	public Integer call() throws Exception
+	public FlightCountResult call() throws Exception
 	{
 		return getBookedFlightCount(this.flightClass, this.flightServerAddress);
 	}
 
-	private int getBookedFlightCount(FlightClass flightClass, FlightServerAddress flightServerAddress) throws Exception{
+	private FlightCountResult getBookedFlightCount(FlightClass flightClass, FlightServerAddress flightServerAddress) throws Exception{
 		DatagramSocket socket = null;
 		try{
 			socket = new DatagramSocket();
@@ -42,15 +43,15 @@ public class BookedFlightCountTask implements Callable<Integer>
 			socket.receive(reply);
 			String replyAsString = new String(reply.getData()).trim();
 			int flightCount = Integer.parseInt(replyAsString);
-			return flightCount;
+			return new FlightCountResult(flightServerAddress.getName(), flightCount);
 		} catch (SocketException e)
 		{
 			e.printStackTrace();
-			return 0;
+			return null;
 		} catch (IOException e)
 		{
 			e.printStackTrace();
-			return 0;
+			return null;
 		}finally {
 			if (socket != null){
 				socket.close();

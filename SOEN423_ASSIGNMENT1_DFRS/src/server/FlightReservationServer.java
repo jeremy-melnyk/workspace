@@ -21,6 +21,7 @@ import database.IPassengerRecordDb;
 import enums.FlightClass;
 import models.Address;
 import models.Flight;
+import models.FlightCountResult;
 import models.FlightServerAddress;
 import models.Passenger;
 import models.PassengerRecord;
@@ -28,6 +29,7 @@ import models.PassengerRecord;
 public class FlightReservationServer implements IFlightReservationServer
 {
 	private final int BUFFER_SIZE = 1000;
+	private final int THREAD_POOL_SIZE = 16;
     private final ExecutorService threadPool;
 	private int rmiPort;
 	private int udpPort;
@@ -98,26 +100,26 @@ public class FlightReservationServer implements IFlightReservationServer
 	}
 
 	@Override
-	public int getBookedFlightCount(FlightClass flightClass) throws RemoteException
+	public String getBookedFlightCount(FlightClass flightClass) throws RemoteException
 	{		
-		int bookedFlightCount = 0;
+		StringBuilder builder = new StringBuilder();
 		try
 		{
-			List<Future<Integer>> flightCounts = new ArrayList<Future<Integer>>();
-			final ExecutorService executorService = Executors.newFixedThreadPool(3);
-			for (FlightServerAddress flightServerAddress : this.otherServers){
-				final Future<Integer> flightCount = executorService.submit(new BookedFlightCountTask(flightClass, flightServerAddress));
-				flightCounts.add(flightCount);
-			}
-			bookedFlightCount += this.passengerRecordDb.numberOfRecords(flightClass);
-			for(Future<Integer> flightCount : flightCounts){
-				bookedFlightCount += flightCount.get().intValue();
-			}
-			return bookedFlightCount;
+			final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+			final Future<FlightCountResult> flightCountFirst = executorService.submit(new BookedFlightCountTask(flightClass, otherServers.get(0)));
+			final Future<FlightCountResult> flightCountSecond = executorService.submit(new BookedFlightCountTask(flightClass, otherServers.get(1)));
+			int flightCountThird = this.passengerRecordDb.numberOfRecords(flightClass);
+			builder.append(flightClass + " class results:\n");
+			builder.append(cityAcronym + " " + flightCountThird + ", \n");
+			FlightCountResult firstResult = flightCountFirst.get();
+			FlightCountResult secondResult = flightCountSecond.get();
+			builder.append(firstResult.getServerName() + " " + firstResult.getCount() + ", \n");
+			builder.append(secondResult.getServerName() + " " + secondResult.getCount() + "\n");
+			return builder.toString();
 		} catch (Exception e)
 		{
 			e.printStackTrace();
-			return 0;
+			return null;
 		}
 	}
 	
