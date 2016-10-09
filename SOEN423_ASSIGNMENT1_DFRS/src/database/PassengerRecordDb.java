@@ -84,7 +84,9 @@ public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordD
 		try{
 			if(!this.outerRecords.containsKey(firstLetter)){
 				HashMap<Integer, PassengerRecord> innerRecords = new HashMap<Integer, PassengerRecord>();
-				innerRecords.put(this.RECORD_ID++, passengerRecord);
+				int recordId = this.RECORD_ID++;
+				innerRecords.put(recordId, passengerRecord);
+				passengerRecord.setRecordId(recordId);
 				this.outerRecords.put(firstLetter, innerRecords);
 				return true;
 			} else {

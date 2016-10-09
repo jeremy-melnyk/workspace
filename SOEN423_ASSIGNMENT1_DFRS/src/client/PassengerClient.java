@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import enums.FlightClass;
 import models.Address;
 import models.Flight;
 import server.IFlightReservationServer;
@@ -13,6 +14,8 @@ public class PassengerClient extends Client
 {
 	public static void main(String[] args)
 	{
+		ManagerClient managerClient = new ManagerClient("rmi://localhost:1099/MTL");
+		
 		long startTime = System.nanoTime();
 		PassengerClient passengerClient = new PassengerClient("rmi://localhost:1099/MTL");				
 		Thread t0 = new Thread(() -> {
@@ -28,6 +31,13 @@ public class PassengerClient extends Client
 			}
 		});
 		t0.start();
+		
+		Thread tM = new Thread(() -> {
+			for(int i = 0; i < 200; ++i){
+				System.out.println(managerClient.getBookedFlightCount(FlightClass.FIRST));	
+			}
+		});
+		tM.start();
 		
 		PassengerClient passengerClient2 = new PassengerClient("rmi://localhost:1099/WST");				
 		Thread t1 = new Thread(() -> {

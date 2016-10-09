@@ -5,15 +5,28 @@ import java.util.Date;
 public class PassengerRecord implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
+	private int recordId;
 	private Passenger passenger;
 	private Flight flight;
 	private Date bookingDate;
 
 	public PassengerRecord(Passenger passenger, Flight flight, Date bookingDate) {
 		super();
+		this.recordId = -1;
 		this.passenger = passenger;
 		this.flight = flight;
 		this.bookingDate = bookingDate;
+	}
+	
+	public int getRecordId()
+	{
+		return recordId;
+	}
+
+
+	public void setRecordId(int recordId)
+	{
+		this.recordId = recordId;
 	}
 
 	public Passenger getPassenger()
