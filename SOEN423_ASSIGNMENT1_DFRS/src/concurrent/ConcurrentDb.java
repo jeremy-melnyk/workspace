@@ -68,7 +68,6 @@ public class ConcurrentDb
 		{
 			// Acquire write permit
 			this.writePermit.acquire();
-			System.out.println("write acquired");
 		} catch (InterruptedException e)
 		{
 			e.printStackTrace();
@@ -80,7 +79,6 @@ public class ConcurrentDb
 	protected void releaseWrite()
 	{
 		// Release write permit
-		System.out.println("write released");
 		this.writePermit.release();
 	}
 }

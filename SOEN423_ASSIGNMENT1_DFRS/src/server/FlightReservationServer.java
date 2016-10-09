@@ -1,30 +1,55 @@
 package server;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import database.IFlightDb;
 import database.IPassengerRecordDb;
 import enums.FlightClass;
 import models.Address;
 import models.Flight;
+import models.FlightServerAddress;
 import models.Passenger;
 import models.PassengerRecord;
 
 public class FlightReservationServer implements IFlightReservationServer
 {
-	private int port;
+	private final int BUFFER_SIZE = 1000;
+    private final ExecutorService threadPool;
+	private int rmiPort;
+	private int udpPort;
+	private List<FlightServerAddress> otherServers;
 	private String cityAcronym;
 	private IPassengerRecordDb passengerRecordDb;
 	private IFlightDb flightDb;
-
-	public FlightReservationServer(int port, String cityAcronym, IPassengerRecordDb passengerRecordDb, IFlightDb flightDb) {
-		if (port < 0)
+	
+	public FlightReservationServer(int rmiPort, int udpPort, int threadPoolSize, List<FlightServerAddress> otherServers, String cityAcronym, IPassengerRecordDb passengerRecordDb, IFlightDb flightDb) {
+		if (rmiPort < 0)
+		{
+			throw new IllegalArgumentException();
+		}
+		if (udpPort < 0)
+		{
+			throw new IllegalArgumentException();
+		}
+		if (threadPoolSize < 0)
+		{
+			throw new IllegalArgumentException();
+		}
+		if (otherServers == null)
 		{
 			throw new IllegalArgumentException();
 		}
@@ -41,7 +66,10 @@ public class FlightReservationServer implements IFlightReservationServer
 			throw new IllegalArgumentException();
 		}
 		
-		this.port = port;
+		this.threadPool = Executors.newFixedThreadPool(threadPoolSize);
+		this.rmiPort = rmiPort;
+		this.udpPort = udpPort;
+		this.otherServers = otherServers;
 		this.cityAcronym = cityAcronym;
 		this.passengerRecordDb = passengerRecordDb;
 		this.flightDb = flightDb;
@@ -64,9 +92,33 @@ public class FlightReservationServer implements IFlightReservationServer
 	}
 	
 	@Override
-	public int getBookedFlightCount(FlightClass flightClass) throws RemoteException
+	public void setOtherServers(List<FlightServerAddress> otherServers)
 	{
-		return this.passengerRecordDb.numberOfRecords(flightClass);
+		this.otherServers = otherServers;
+	}
+
+	@Override
+	public int getBookedFlightCount(FlightClass flightClass) throws RemoteException
+	{		
+		int bookedFlightCount = 0;
+		try
+		{
+			List<Future<Integer>> flightCounts = new ArrayList<Future<Integer>>();
+			final ExecutorService executorService = Executors.newFixedThreadPool(3);
+			for (FlightServerAddress flightServerAddress : this.otherServers){
+				final Future<Integer> flightCount = executorService.submit(new BookedFlightCountTask(flightClass, flightServerAddress));
+				flightCounts.add(flightCount);
+			}
+			bookedFlightCount += this.passengerRecordDb.numberOfRecords(flightClass);
+			for(Future<Integer> flightCount : flightCounts){
+				bookedFlightCount += flightCount.get().intValue();
+			}
+			return bookedFlightCount;
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			return 0;
+		}
 	}
 	
 	@Override
@@ -82,8 +134,9 @@ public class FlightReservationServer implements IFlightReservationServer
 	}
 	
 	@Override
-	public boolean addFlight(Flight flight) throws RemoteException
+	public boolean editFlightRecord(Flight flight) throws RemoteException
 	{
+		// TODO Implement
 		if (flight == null){
 			return false;
 		}
@@ -92,17 +145,42 @@ public class FlightReservationServer implements IFlightReservationServer
 	}
 	
 	@Override
+	public void serveRequests(){		
+		DatagramSocket socket = null;
+		try
+		{
+			socket = new DatagramSocket(udpPort);
+			while(true){
+				byte[] buffer = new byte[BUFFER_SIZE];
+				DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+				socket.receive(request);
+				threadPool.execute(new BookedFlightCountHandler(socket, request, passengerRecordDb));
+			}
+		} catch (SocketException e)
+		{
+			e.printStackTrace();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}finally {
+			if (socket != null){
+				socket.close();
+			}
+		}
+	}
+	
+	@Override
 	public void registerServer() throws Exception
 	{
-		Remote remote = UnicastRemoteObject.exportObject(this, this.port);
-		Registry registry = LocateRegistry.getRegistry(this.port);	
+		Remote remote = UnicastRemoteObject.exportObject(this, this.rmiPort);
+		Registry registry = LocateRegistry.getRegistry(this.rmiPort);	
 		registry.rebind(this.cityAcronym, remote);
 	}
 
 	@Override
 	public void unregisterServer() throws Exception
 	{
-		Registry registry = LocateRegistry.getRegistry(this.port);	
+		Registry registry = LocateRegistry.getRegistry(this.rmiPort);
 		registry.unbind(this.cityAcronym);
 		UnicastRemoteObject.unexportObject(this, true);
 	}

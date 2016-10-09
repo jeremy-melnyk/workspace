@@ -19,4 +19,18 @@ public enum FlightClass
 			throw new IllegalArgumentException();
 		}
 	}
+	
+	public static FlightClass toFlightClass(String string){
+		switch (string)
+		{
+		case "FIRST":
+			return FIRST;
+		case "BUSINESS":
+			return BUSINESS;
+		case "ECONOMY":
+			return ECONOMY;
+		default:
+			throw new IllegalArgumentException();
+		}
+	}
 }
