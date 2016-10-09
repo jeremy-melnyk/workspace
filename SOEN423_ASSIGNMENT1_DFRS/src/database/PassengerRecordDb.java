@@ -80,25 +80,18 @@ public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordD
 		}
 		
 		char firstLetter = (char) lastName.charAt(0);
-		// TODO : PassengerRecordDb can't acquire seat on flight if it is currently being modified by a manager.
 		requestWrite();
 		try{
 			if(!this.outerRecords.containsKey(firstLetter)){
 				HashMap<Integer, PassengerRecord> innerRecords = new HashMap<Integer, PassengerRecord>();
-				Flight flight = passengerRecord.getFlight();
-				if(flight.acquireSeat()){
-					innerRecords.put(this.RECORD_ID++, passengerRecord);
-					this.outerRecords.put(firstLetter, innerRecords);
-					return true;
-				}
+				innerRecords.put(this.RECORD_ID++, passengerRecord);
+				this.outerRecords.put(firstLetter, innerRecords);
+				return true;
 			} else {
 				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(firstLetter);
 				if(!innerRecords.containsValue(passengerRecord)){
-					Flight flight = passengerRecord.getFlight();
-					if(flight.acquireSeat()){
-						innerRecords.put(this.RECORD_ID++, passengerRecord);
-						return true;
-					}
+					innerRecords.put(this.RECORD_ID++, passengerRecord);
+					return true;
 				}	
 			}
 		} finally{
@@ -141,7 +134,7 @@ public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordD
 			for (Character outerKey : outerKeys)
 			{
 				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
-				return innerRecords.remove(recordId);
+				return innerRecords.remove(recordId);	
 			}
 		} finally{
 			releaseWrite();	
@@ -228,8 +221,7 @@ public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordD
 				Set<Integer> innerKeys = innerRecords.keySet();
 				for (Integer innerKey : innerKeys)
 				{
-					PassengerRecord record = innerRecords.remove(innerKey);
-					passengerRecords.add(record);
+					passengerRecords.add(innerRecords.remove(innerKey));
 				}
 			}
 		} finally{
@@ -251,11 +243,7 @@ public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordD
 				Set<Integer> innerKeys = innerRecords.keySet();
 				for (Integer innerKey : innerKeys)
 				{
-					PassengerRecord record = innerRecords.get(innerKey);
-					Flight flight = record.getFlight();
-					if(flight.getFlightClass().equals(flightClass)){
-						passengerRecords.add(innerRecords.remove(record));
-					}
+					passengerRecords.add(innerRecords.remove(innerKey));
 				}
 			}
 		} finally{
@@ -268,12 +256,14 @@ public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordD
 	public List<PassengerRecord> removeRecords(char character)
 	{
 		character = Character.toUpperCase(character);
-		List<PassengerRecord> passengerRecords = null;
+		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
 		requestWrite();
 		try{
-			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.remove(character);
-			if(innerRecords != null){
-				passengerRecords = new ArrayList<PassengerRecord>(innerRecords.values());
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(character);
+			Set<Integer> innerKeys = innerRecords.keySet();
+			for (Integer innerKey : innerKeys)
+			{
+				passengerRecords.add(innerRecords.remove(innerKey));
 			}
 		} finally{
 			releaseWrite();	

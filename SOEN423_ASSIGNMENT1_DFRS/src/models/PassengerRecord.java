@@ -47,6 +47,12 @@ public class PassengerRecord implements Serializable {
 	}
 
 	@Override
+	public String toString()
+	{
+		return "PassengerRecord [passenger=" + passenger + ", flight=" + flight + ", bookingDate=" + bookingDate + "]";
+	}
+
+	@Override
 	public int hashCode()
 	{
 		final int prime = 31;

@@ -17,10 +17,14 @@ public class DistributedServer
 	public static void main(String[] args)
 	{
 		try
-		{
-			IFlightReservationServer montreal = new FlightReservationServer(PORT, "MTL", new PassengerRecordDb(), new FlightDb());
-			IFlightReservationServer washington = new FlightReservationServer(PORT, "WST", new PassengerRecordDb(), new FlightDb());
-			IFlightReservationServer newDelhi = new FlightReservationServer(PORT, "NDL", new PassengerRecordDb(), new FlightDb());
+		{	
+			FlightDb montrealFlights = new FlightDb();
+			FlightDb washingtonFlights = new FlightDb();
+			FlightDb newDelhiFlights = new FlightDb();
+			
+			IFlightReservationServer montreal = new FlightReservationServer(PORT, "MTL", new PassengerRecordDb(), montrealFlights);
+			IFlightReservationServer washington = new FlightReservationServer(PORT, "WST", new PassengerRecordDb(), washingtonFlights);
+			IFlightReservationServer newDelhi = new FlightReservationServer(PORT, "NDL", new PassengerRecordDb(), newDelhiFlights);
 			LocateRegistry.createRegistry(PORT);
 			
 			// Create some initial flights

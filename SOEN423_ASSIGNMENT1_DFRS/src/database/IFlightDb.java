@@ -14,6 +14,9 @@ public interface IFlightDb {
 	public Flight getFlight(int recordId);
 	public Flight removeFlight(int recordId);
 	
+	public boolean acquireSeat(int recordId);
+	public boolean releaseSeat(int recordId);
+	
 	public List<Flight> getFlights();
 	public List<Flight> getAvailableFlights();
 	public List<Flight> getFlights(FlightClass flightClass);

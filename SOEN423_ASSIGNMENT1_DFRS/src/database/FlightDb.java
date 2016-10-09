@@ -101,7 +101,7 @@ public class FlightDb extends ConcurrentDb implements IFlightDb
 			return this.flights.get(recordId);
 		} finally
 		{
-			requestRead();
+			releaseRead();
 		}
 	}
 
@@ -278,5 +278,43 @@ public class FlightDb extends ConcurrentDb implements IFlightDb
 			releaseWrite();
 		}
 		return flights;
+	}
+
+	@Override
+	public boolean acquireSeat(int recordId)
+	{
+		if (recordId < 0)
+		{
+			return false;
+		}
+
+		requestWrite();
+		try
+		{
+			Flight flight = this.flights.get(recordId);
+			return flight.acquireSeat();
+		} finally
+		{
+			releaseWrite();
+		}
+	}
+
+	@Override
+	public boolean releaseSeat(int recordId)
+	{
+		if (recordId < 0)
+		{
+			return false;
+		}
+
+		requestWrite();
+		try
+		{
+			Flight flight = this.flights.get(recordId);
+			return flight.releaseSeat();
+		} finally
+		{
+			releaseWrite();
+		}
 	}
 }
