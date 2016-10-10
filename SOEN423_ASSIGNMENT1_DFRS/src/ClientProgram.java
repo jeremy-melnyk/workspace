@@ -17,19 +17,35 @@ public class ClientProgram
 		for(int i = 0; i < 3; ++i){
 			ManagerClient managerClient = new ManagerClient("rmi://localhost:1099/");
 			managerClient.login("MTL" + mtlId++);
-			Flgith
-			managerClient.editFlightRecord(0, FlightDbOperation.EDIT, );
+			Thread tM = new Thread(() -> {
+				for(int j = 0; j < 100; ++j){
+					System.out.println(managerClient.getBookedFlightCount(FlightClass.FIRST));	
+				}
+			});
+			tM.start();
 		}
 		for(int i = 0; i < 3; ++i){
 			ManagerClient managerClient = new ManagerClient("rmi://localhost:1099/");
 			managerClient.login("WST" + wstId++);
+			Thread tM = new Thread(() -> {
+				for(int j = 0; j < 100; ++j){
+					System.out.println(managerClient.getBookedFlightCount(FlightClass.BUSINESS));	
+				}
+			});
+			tM.start();
 		}
 		for(int i = 0; i < 3; ++i){
 			ManagerClient managerClient = new ManagerClient("rmi://localhost:1099/");
 			managerClient.login("NDL" + ndlId++);		
+			Thread tM = new Thread(() -> {
+				for(int j = 0; j < 100; ++j){
+					System.out.println(managerClient.getBookedFlightCount(FlightClass.ECONOMY));	
+				}
+			});
+			tM.start();
 		}
 		
-		long startTime = System.nanoTime();
+		//long startTime = System.nanoTime();
 		PassengerClient passengerClient = new PassengerClient("rmi://localhost:1099/MTL");				
 		Thread t0 = new Thread(() -> {
 			List<Flight> availableFlights = passengerClient.getAvailableFlights();
@@ -44,13 +60,6 @@ public class ClientProgram
 			}
 		});
 		t0.start();
-		
-		Thread tM = new Thread(() -> {
-			for(int i = 0; i < 200; ++i){
-				System.out.println(managerClient.getBookedFlightCount(FlightClass.FIRST));	
-			}
-		});
-		tM.start();
 		
 		PassengerClient passengerClient2 = new PassengerClient("rmi://localhost:1099/WST");				
 		Thread t1 = new Thread(() -> {
@@ -81,6 +90,7 @@ public class ClientProgram
 			}
 		});
 		t2.start();
+		/*
 		try
 		{
 			t0.join();
@@ -91,9 +101,10 @@ public class ClientProgram
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		long endTime = System.nanoTime();
-		long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
-		System.out.println(duration / 1000000 + "ms");
+		*/
+		//long endTime = System.nanoTime();
+		//long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
+		//System.out.println(duration / 1000000 + "ms");
 		/*
 	    Scanner keyboard = new Scanner(System.in);
 	    int choice = 0;

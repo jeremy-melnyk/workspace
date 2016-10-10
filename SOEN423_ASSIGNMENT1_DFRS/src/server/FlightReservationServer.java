@@ -226,7 +226,6 @@ public class FlightReservationServer implements IFlightReservationServer
 				byte[] buffer = new byte[BUFFER_SIZE];
 				DatagramPacket request = new DatagramPacket(buffer, buffer.length);
 				socket.receive(request);
-				this.logger.log(this.cityAcronym, LogOperation.REQUEST_RECEIVED.name(), request.getAddress() + " : " + request.getPort());
 				threadPool.execute(new BookedFlightCountHandler(socket, request, passengerRecordDb));
 			}
 		} catch (SocketException e)
