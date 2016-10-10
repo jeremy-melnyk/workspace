@@ -3,6 +3,7 @@ import java.util.List;
 import client.ManagerClient;
 import client.PassengerClient;
 import enums.FlightClass;
+import enums.FlightDbOperation;
 import models.Address;
 import models.Flight;
 
@@ -10,8 +11,23 @@ public class ClientProgram
 {
 	public static void main(String[] args)
 	{
-		ManagerClient managerClient = new ManagerClient("rmi://localhost:1099/");
-		managerClient.login("MTL1111");
+		int mtlId = 1111;
+		int wstId = 1111;
+		int ndlId = 1111;
+		for(int i = 0; i < 3; ++i){
+			ManagerClient managerClient = new ManagerClient("rmi://localhost:1099/");
+			managerClient.login("MTL" + mtlId++);
+			Flgith
+			managerClient.editFlightRecord(0, FlightDbOperation.EDIT, );
+		}
+		for(int i = 0; i < 3; ++i){
+			ManagerClient managerClient = new ManagerClient("rmi://localhost:1099/");
+			managerClient.login("WST" + wstId++);
+		}
+		for(int i = 0; i < 3; ++i){
+			ManagerClient managerClient = new ManagerClient("rmi://localhost:1099/");
+			managerClient.login("NDL" + ndlId++);		
+		}
 		
 		long startTime = System.nanoTime();
 		PassengerClient passengerClient = new PassengerClient("rmi://localhost:1099/MTL");				

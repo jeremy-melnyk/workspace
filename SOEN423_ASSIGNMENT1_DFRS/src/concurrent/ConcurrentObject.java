@@ -4,14 +4,14 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ConcurrentDb
+public class ConcurrentObject
 {
 	private Lock threadQueue;
 	private Lock readerCountAccess;
 	private Semaphore writePermit;
 	private int readers;
 
-	public ConcurrentDb() {
+	public ConcurrentObject() {
 		// Queue for reader and writer threads
 		this.threadQueue = new ReentrantLock(true);
 		// Limit read count access to one reader thread

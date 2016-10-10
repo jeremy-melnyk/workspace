@@ -30,4 +30,9 @@ public class FlightCountResult
 	{
 		this.count = count;
 	}
+
+	@Override
+	public String toString() {
+		return "FlightCountResult [serverName=" + serverName + ", count=" + count + "]";
+	}
 }

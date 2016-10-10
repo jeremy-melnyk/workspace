@@ -24,6 +24,16 @@ public class Flight implements Serializable {
 		this.seats = seats;
 		this.availableSeats = seats;
 	}
+	
+	public Flight(FlightParameterValues flightParameters) {
+		super();
+		this.recordId = -1;
+		this.flightClass = flightParameters.getFlightClass();
+		this.destination = flightParameters.getDestination();
+		this.date = flightParameters.getDate();
+		this.seats = flightParameters.getSeats();
+		this.availableSeats = this.seats;
+	}
 
 	public int getRecordId()
 	{

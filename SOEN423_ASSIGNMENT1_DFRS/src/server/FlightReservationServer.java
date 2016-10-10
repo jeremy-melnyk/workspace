@@ -19,11 +19,14 @@ import database.IFlightDb;
 import database.IPassengerRecordDb;
 import enums.FlightClass;
 import enums.FlightDbOperation;
+import enums.FlightParameter;
+import enums.LogOperation;
 import log.ILogger;
 import models.Address;
 import models.Flight;
 import models.FlightClassOperation;
 import models.FlightCountResult;
+import models.FlightParameterValues;
 import models.FlightServerAddress;
 import models.Passenger;
 import models.PassengerRecord;
@@ -107,11 +110,11 @@ public class FlightReservationServer implements IFlightReservationServer
 			{
 				result = this.passengerRecordDb.addRecord(passengerRecord);
 				if(result){
-					this.logger.log(this.cityAcronym, "Successfully booked PassengerRecord: " + passengerRecord);
+					this.logger.log(this.cityAcronym, LogOperation.BOOK_FLIGHT.name(), passengerRecord.toString());
 				}
 			} catch (Exception e)
 			{
-				this.logger.log(this.cityAcronym ,e.getMessage());
+				this.logger.log(this.cityAcronym, LogOperation.BOOK_FLIGHT.name(), e.getMessage());
 			}
 		}
 		return false;
@@ -135,19 +138,20 @@ public class FlightReservationServer implements IFlightReservationServer
 			final Future<FlightCountResult> flightCountFirst = executorService.submit(new BookedFlightCountTask(flightClass, otherServers.get(0)));
 			final Future<FlightCountResult> flightCountSecond = executorService.submit(new BookedFlightCountTask(flightClass, otherServers.get(1)));
 			int flightCountThird = this.passengerRecordDb.numberOfRecords(flightClass);
-			builder.append(flightClass + " class results:\n");
-			builder.append(cityAcronym + " " + flightCountThird + ", \n");
+			builder.append(flightClass + " : ");
+			builder.append(cityAcronym + " " + flightCountThird + ", ");
 			FlightCountResult firstResult = flightCountFirst.get();
 			FlightCountResult secondResult = flightCountSecond.get();
-			builder.append(firstResult.getServerName() + " " + firstResult.getCount() + ", \n");
-			builder.append(secondResult.getServerName() + " " + secondResult.getCount() + "\n");
-			this.logger.log(managerId, "Booked flight count request succeeded");
-			this.logger.log(this.cityAcronym, managerId + ": booked flight request succeeded");
+			builder.append(firstResult.getServerName() + " " + firstResult.getCount() + ", ");
+			builder.append(secondResult.getServerName() + " " + secondResult.getCount());
+			this.logger.log(this.cityAcronym, LogOperation.BOOK_COUNT_REQUEST.name(), builder.toString());
+			this.logger.log(managerId, LogOperation.BOOK_COUNT_REQUEST.name(), builder.toString());
+			builder.append(System.lineSeparator());
 			return builder.toString();
 		} catch (Exception e)
 		{
-			this.logger.log(this.cityAcronym, e.getMessage());
-			this.logger.log(managerId, e.getMessage());
+			this.logger.log(this.cityAcronym, LogOperation.BOOK_COUNT_REQUEST.name(), e.getMessage());
+			this.logger.log(managerId, LogOperation.BOOK_COUNT_REQUEST.name(), e.getMessage());
 			return null;
 		}
 	}
@@ -165,46 +169,49 @@ public class FlightReservationServer implements IFlightReservationServer
 	}
 	
 	@Override
-	public boolean editFlightRecord(RecordOperation recordOperation, FlightDbOperation operation, Flight flight) throws RemoteException
+	public boolean editFlightRecord(RecordOperation recordOperation, FlightParameter flightParameter, FlightParameterValues flightParameterValues) throws RemoteException
 	{
-		//TODO Move logs to inside database.
-		
+		// Initial records
 		if (recordOperation == null){
-			recordOperation = new RecordOperation("SERVER", -1);
-		}
-		if (operation == null){
-			return false;
+			recordOperation = new RecordOperation("INITIAL", -1 , FlightDbOperation.ADD);
 		}
 		
+		FlightDbOperation operation = recordOperation.getFlightDbOperation();	
 		String managerId = recordOperation.getManagerId();
+		
 		switch(operation){
 		case ADD:
-			if (flight == null){
+			if (flightParameterValues == null){
 				return false;
 			}
-			boolean result =  this.flightDb.addFlight(flight);
-			this.logger.log(this.cityAcronym, "Added flight: " + flight);
-			this.logger.log(managerId, "Added flight: " + flight);
+			Flight newFlight = new Flight(flightParameterValues);
+			boolean result =  this.flightDb.addFlight(newFlight);
+			this.logger.log(this.cityAcronym, LogOperation.ADD_FLIGHT.name(), managerId + " : " + newFlight.toString());
+			this.logger.log(managerId, LogOperation.ADD_FLIGHT.name(), newFlight.toString());
 			return result;
 		case EDIT:
-			if (flight == null)
+			if (flightParameterValues == null)
+			{
+				return false;
+			}
+			if (flightParameter == null)
 			{
 				return false;
 			}
 			int recordIdToEdit = recordOperation.getRecordId();
-			Flight editedFlight = this.flightDb.editFlight(recordIdToEdit, flight);
-			this.logger.log(this.cityAcronym, "Edited flight: " + flight);
-			this.logger.log(managerId, "Edited flight: " + flight);
+			Flight editedFlight = this.flightDb.editFlight(recordIdToEdit, flightParameter, flightParameterValues);
+			this.logger.log(this.cityAcronym, LogOperation.EDIT_FLIGHT.name(), managerId + " : " +  editedFlight.toString());
+			this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name(), editedFlight.toString());
 			return editedFlight != null;
 		case REMOVE:
 			int recordIdToRemove = recordOperation.getRecordId();
 			Flight removedFlight = this.flightDb.removeFlight(recordIdToRemove);
-			this.logger.log(this.cityAcronym, "Removed flight: " + flight);
-			this.logger.log(managerId, "Removed flight: " + flight);
+			this.logger.log(this.cityAcronym, LogOperation.REMOVE_FLIGHT.name(), managerId + " : " + removedFlight.toString());
+			this.logger.log(managerId, LogOperation.REMOVE_FLIGHT.name(), removedFlight.toString());
 			return removedFlight != null;
 		default:
-			this.logger.log(this.cityAcronym, "FlightDbOperation could not be determined " + operation);
-			this.logger.log(managerId, "FlightDbOperation could not be determined " + operation);
+			this.logger.log(this.cityAcronym, LogOperation.UNKNOWN.name(), managerId + " : " + operation.name());
+			this.logger.log(managerId, LogOperation.UNKNOWN.name(), operation.name());
 			return false;
 		}
 	}
@@ -219,14 +226,15 @@ public class FlightReservationServer implements IFlightReservationServer
 				byte[] buffer = new byte[BUFFER_SIZE];
 				DatagramPacket request = new DatagramPacket(buffer, buffer.length);
 				socket.receive(request);
+				this.logger.log(this.cityAcronym, LogOperation.REQUEST_RECEIVED.name(), request.getAddress() + " : " + request.getPort());
 				threadPool.execute(new BookedFlightCountHandler(socket, request, passengerRecordDb));
 			}
 		} catch (SocketException e)
 		{
-			e.printStackTrace();
+			this.logger.log(this.cityAcronym, LogOperation.SOCKET_EXCEPTION.name(), e.getMessage());
 		} catch (IOException e)
 		{
-			e.printStackTrace();
+			this.logger.log(this.cityAcronym, LogOperation.IO_EXCEPTION.name(), e.getMessage());
 		}finally {
 			if (socket != null){
 				socket.close();
@@ -240,6 +248,7 @@ public class FlightReservationServer implements IFlightReservationServer
 		Remote remote = UnicastRemoteObject.exportObject(this, this.rmiPort);
 		Registry registry = LocateRegistry.getRegistry(this.rmiPort);	
 		registry.rebind(this.cityAcronym, remote);
+		this.logger.log(this.cityAcronym, LogOperation.REGISTER_SERVER.name(), "Port: " + this.rmiPort);
 	}
 
 	@Override
@@ -248,6 +257,7 @@ public class FlightReservationServer implements IFlightReservationServer
 		Registry registry = LocateRegistry.getRegistry(this.rmiPort);
 		registry.unbind(this.cityAcronym);
 		UnicastRemoteObject.unexportObject(this, true);
+		this.logger.log(this.cityAcronym, LogOperation.UNREGISTER_SERVER.name(), "Port: " + this.rmiPort);
 	}
 
 	@Override

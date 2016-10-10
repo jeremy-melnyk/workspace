@@ -6,12 +6,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
-public class TextFileLog implements ILog {
+
+import concurrent.ConcurrentObject;
+public class TextFileLog extends ConcurrentObject implements ILog {
 	
 	@Override
-	public boolean write(String tag, String message)
+	public boolean write(String fileName, String message)
 	{
-		if (tag == null)
+		if (fileName == null)
 		{
 			return false;
 		}
@@ -20,17 +22,19 @@ public class TextFileLog implements ILog {
 			return false;
 		}
 
-		File file = new File(tag + ".txt");
+		File file = new File(fileName);
 		FileWriter fileWriter = null;
 		try
 		{
 			fileWriter = new FileWriter(file, true);
-			fileWriter.write(tag + " : " + message + " at " + new Date() + System.lineSeparator());
+			requestWrite();
+			fileWriter.write(message);
 		} catch (IOException e)
 		{
 			e.printStackTrace();
 		} finally
 		{
+			releaseWrite();
 			try
 			{
 				fileWriter.close();
@@ -54,6 +58,7 @@ public class TextFileLog implements ILog {
 		try {
 			reader = new BufferedReader(new FileReader(tag + ".txt"));
 		    StringBuilder sb = new StringBuilder();
+		    requestRead();
 		    String line = reader.readLine();
 		    while (line != null) {
 		        sb.append(line);
@@ -66,6 +71,7 @@ public class TextFileLog implements ILog {
 			e.printStackTrace();
 			return null;
 		} finally {
+		    releaseRead();
 			if(reader != null){
 			    try
 				{
@@ -88,7 +94,10 @@ public class TextFileLog implements ILog {
 		}
 
 		File file = new File(tag + ".txt");
-		return file.delete();
+		requestWrite();
+		boolean result = file.delete();
+		releaseWrite();
+		return result;
 	}
 
 }

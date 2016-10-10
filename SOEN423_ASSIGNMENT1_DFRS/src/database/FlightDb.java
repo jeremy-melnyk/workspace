@@ -6,11 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import concurrent.ConcurrentDb;
+import concurrent.ConcurrentObject;
 import enums.FlightClass;
+import enums.FlightParameter;
 import models.Flight;
+import models.FlightParameterValues;
 
-public class FlightDb extends ConcurrentDb implements IFlightDb
+public class FlightDb extends ConcurrentObject implements IFlightDb
 {
 	private int RECORD_ID;
 	private HashMap<Integer, Flight> flights;
@@ -124,14 +126,14 @@ public class FlightDb extends ConcurrentDb implements IFlightDb
 	}
 	
 	@Override
-	public Flight editFlight(int recordId, Flight newFlight)
+	public Flight editFlight(int recordId, FlightParameter flightParameter, FlightParameterValues flightParameters)
 	{
 		if (recordId < 0)
 		{
 			return null;
 		}
 		
-		if (newFlight == null)
+		if (flightParameters == null)
 		{
 			return null;
 		}
@@ -143,8 +145,18 @@ public class FlightDb extends ConcurrentDb implements IFlightDb
 			if(flight == null){
 				return null;
 			}
-			newFlight.setRecordId(flight.getRecordId());
-			flight = newFlight;
+			switch(flightParameter){
+			case DATE:
+				flight.setDate(flightParameters.getDate());
+			case DESTINATION:
+				flight.setDestination(flightParameters.getDestination());
+			case FLIGHTCLASS:
+				flight.setFlightClass(flightParameters.getFlightClass());
+			case SEATS:
+				flight.setSeats(flightParameters.getSeats());
+			default:
+				break;		
+			}
 			return flight;
 		} finally
 		{

@@ -16,7 +16,9 @@ import log.ILogger;
 import log.TextFileLog;
 import models.City;
 import models.Flight;
+import models.FlightParameterValues;
 import models.FlightServerAddress;
+import models.RecordOperation;
 
 public class DistributedServer
 {
@@ -65,12 +67,9 @@ public class DistributedServer
 			newDelhiManagers.add("NDL1112");
 			newDelhiManagers.add("NDL1113");
 			
-			// TODO: Make concurrent
-			ILogger logger = new CustomLogger(new TextFileLog());
-			
-			IFlightReservationServer montreal = new FlightReservationServer(PORT, UDP_PORT_MTL, THREAD_POOL_SIZE, othersForMontreal, "MTL", new PassengerRecordDb(), montrealFlights, montrealManagers, logger);
-			IFlightReservationServer washington = new FlightReservationServer(PORT, UDP_PORT_WST, THREAD_POOL_SIZE, othersForWashington, "WST", new PassengerRecordDb(), washingtonFlights, washingtonManagers, logger);
-			IFlightReservationServer newDelhi = new FlightReservationServer(PORT, UDP_PORT_NDL, THREAD_POOL_SIZE, othersForNewDelhi, "NDL", new PassengerRecordDb(), newDelhiFlights, newDelhiManagers, logger);
+			IFlightReservationServer montreal = new FlightReservationServer(PORT, UDP_PORT_MTL, THREAD_POOL_SIZE, othersForMontreal, "MTL", new PassengerRecordDb(), montrealFlights, montrealManagers, new CustomLogger(new TextFileLog()));
+			IFlightReservationServer washington = new FlightReservationServer(PORT, UDP_PORT_WST, THREAD_POOL_SIZE, othersForWashington, "WST", new PassengerRecordDb(), washingtonFlights, washingtonManagers, new CustomLogger(new TextFileLog()));
+			IFlightReservationServer newDelhi = new FlightReservationServer(PORT, UDP_PORT_NDL, THREAD_POOL_SIZE, othersForNewDelhi, "NDL", new PassengerRecordDb(), newDelhiFlights, newDelhiManagers, new CustomLogger(new TextFileLog()));
 			LocateRegistry.createRegistry(PORT);
 			
 			// Create some initial flights
@@ -81,23 +80,25 @@ public class DistributedServer
 			Date date0 = new GregorianCalendar(2016, Calendar.OCTOBER, 17).getTime();
 			Date date1 = new GregorianCalendar(2016, Calendar.DECEMBER, 20).getTime();
 			
-			Flight flight0 = new Flight(FlightClass.FIRST, washingtonCity, date0, 20);
-			montreal.editFlightRecord(null, FlightDbOperation.ADD, flight0);
+			RecordOperation recordOperation = new RecordOperation("INITIAL", -1 , FlightDbOperation.ADD);
 			
-			Flight flight1 = new Flight(FlightClass.BUSINESS, washingtonCity, date0, 25);
-			montreal.editFlightRecord(null, FlightDbOperation.ADD, flight1);
+			FlightParameterValues flight0 = new FlightParameterValues(FlightClass.FIRST, washingtonCity, date0, 20);
+			montreal.editFlightRecord(recordOperation, null, flight0);
 			
-			Flight flight2 = new Flight(FlightClass.ECONOMY, washingtonCity, date0, 50);
-			montreal.editFlightRecord(null, FlightDbOperation.ADD, flight2);
+			FlightParameterValues flight1 = new FlightParameterValues(FlightClass.BUSINESS, washingtonCity, date0, 25);
+			montreal.editFlightRecord(recordOperation, null, flight1);
 			
-			Flight flight3 = new Flight(FlightClass.FIRST, montrealCity, date1, 25);
-			washington.editFlightRecord(null, FlightDbOperation.ADD, flight3);
+			FlightParameterValues flight2 = new FlightParameterValues(FlightClass.ECONOMY, washingtonCity, date0, 50);
+			montreal.editFlightRecord(recordOperation, null, flight2);
 			
-			Flight flight4 = new Flight(FlightClass.ECONOMY, newDelhiCity, date1, 75);
-			washington.editFlightRecord(null, FlightDbOperation.ADD, flight4);
+			FlightParameterValues flight3 = new FlightParameterValues(FlightClass.FIRST, montrealCity, date1, 25);
+			washington.editFlightRecord(recordOperation, null, flight3);
 			
-			Flight flight5 = new Flight(FlightClass.FIRST, washingtonCity, date1, 75);
-			newDelhi.editFlightRecord(null, FlightDbOperation.ADD, flight5);
+			FlightParameterValues flight4 = new FlightParameterValues(FlightClass.ECONOMY, newDelhiCity, date1, 75);
+			washington.editFlightRecord(recordOperation, null, flight4);
+			
+			FlightParameterValues flight5 = new FlightParameterValues(FlightClass.FIRST, washingtonCity, date1, 75);
+			newDelhi.editFlightRecord(recordOperation, null, flight5);
 			
 			montreal.registerServer();
 			washington.registerServer();

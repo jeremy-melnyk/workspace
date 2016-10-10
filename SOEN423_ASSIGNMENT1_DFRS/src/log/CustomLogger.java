@@ -10,9 +10,11 @@ public class CustomLogger implements ILogger {
 	}
 
 	@Override
-	public boolean log(String tag, String message)
+	public boolean log(String tag, String operation, String message)
 	{
-		return this.log.write(tag, message);
+		String logMessage = String.format("%s : %s : %s" + System.lineSeparator(), tag, operation, message);
+		String fileName = tag + ".txt";
+		return this.log.write(fileName, logMessage);
 		
 	}
 

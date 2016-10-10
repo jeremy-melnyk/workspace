@@ -8,6 +8,7 @@ import java.net.SocketException;
 import java.util.concurrent.Callable;
 
 import enums.FlightClass;
+import enums.LogOperation;
 import models.FlightCountResult;
 import models.FlightServerAddress;
 import server.IFlightReservationServer;
@@ -46,12 +47,10 @@ public class BookedFlightCountTask implements Callable<FlightCountResult>
 			return new FlightCountResult(flightServerAddress.getName(), flightCount);
 		} catch (SocketException e)
 		{
-			e.printStackTrace();
-			return null;
+			throw e;
 		} catch (IOException e)
 		{
-			e.printStackTrace();
-			return null;
+			throw e;
 		}finally {
 			if (socket != null){
 				socket.close();

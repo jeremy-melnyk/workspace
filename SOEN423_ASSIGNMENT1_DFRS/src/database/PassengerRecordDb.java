@@ -5,15 +5,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import concurrent.ConcurrentDb;
+import concurrent.ConcurrentObject;
 import enums.FlightClass;
 import models.Flight;
 import models.Passenger;
 import models.PassengerRecord;
 
-public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordDb
+public class PassengerRecordDb extends ConcurrentObject implements IPassengerRecordDb
 {
-	private int RECORD_ID;
+	private int RECORD_ID = 0;
 	private HashMap<Character, HashMap<Integer, PassengerRecord>> outerRecords;
 	
 	public PassengerRecordDb() {
@@ -85,17 +85,19 @@ public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordD
 			if(!this.outerRecords.containsKey(firstLetter)){
 				HashMap<Integer, PassengerRecord> innerRecords = new HashMap<Integer, PassengerRecord>();
 				int recordId = this.RECORD_ID++;
-				innerRecords.put(recordId, passengerRecord);
 				passengerRecord.setRecordId(recordId);
+				innerRecords.put(recordId, passengerRecord);
 				this.outerRecords.put(firstLetter, innerRecords);
 				return true;
 			} else {
 				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(firstLetter);
 				if(!innerRecords.containsValue(passengerRecord)){
-					innerRecords.put(this.RECORD_ID++, passengerRecord);
+					int recordId = this.RECORD_ID++;
+					passengerRecord.setRecordId(recordId);
+					innerRecords.put(recordId, passengerRecord);
 					return true;
 				}
-				throw new Exception("[FAILED] Passenger record already exists: " + passengerRecord);
+				throw new Exception("[FAILED] Already exists : " + passengerRecord);
 			}
 		} finally{
 			releaseWrite();	

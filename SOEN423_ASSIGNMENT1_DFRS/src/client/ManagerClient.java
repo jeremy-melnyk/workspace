@@ -5,18 +5,26 @@ import java.util.List;
 
 import enums.FlightClass;
 import enums.FlightDbOperation;
+import enums.FlightParameter;
+import enums.LogOperation;
+import log.CustomLogger;
+import log.ILogger;
+import log.TextFileLog;
 import models.Flight;
 import models.FlightClassOperation;
+import models.FlightParameterValues;
 import models.RecordOperation;
 import server.IFlightReservationServer;
 
 public class ManagerClient extends Client
 {
 	private String managerId;
+	ILogger logger;
 	
 	public ManagerClient(String baseUrl) {
 		super(baseUrl);
 		this.managerId = null;
+		this.logger = new CustomLogger(new TextFileLog());
 	}
 	
 	public boolean login(String managerId){
@@ -28,17 +36,17 @@ public class ManagerClient extends Client
 			List<String> managerIds = flightReservationServer.getManagerIds();
 			if (managerIds.contains(managerId)){
 				this.managerId = managerId;
-				System.out.println("Logged in as: " + managerId);
+				this.logger.log(managerId, LogOperation.LOGIN.name(), managerId);
 				return true;
 			}
 			return false;
 		} catch (RemoteException e)
 		{
-			System.out.println(e.getMessage());
+			this.logger.log(managerId, LogOperation.REMOTE_EXCEPTION.name(), e.getMessage());	
 			return false;
 		} catch (Exception e)
 		{
-			System.out.println(e.getMessage());
+			this.logger.log(managerId, LogOperation.EXCEPTION.name(), e.getMessage());	
 			return false;
 		}
 	}
@@ -66,9 +74,9 @@ public class ManagerClient extends Client
 		}
 	}
 	
-	public boolean editFlightRecord(int recordId, FlightDbOperation operation, Flight flight){
+	public boolean editFlightRecord(int recordId, FlightDbOperation operation, FlightParameter flightParameter, FlightParameterValues flightParameters){
 		if(managerId == null){
-			System.out.println("No manager is logged in!");
+			this.logger.log(managerId, LogOperation.BAD_LOGIN.name(), "No ManagerId was set.");
 			return false;
 		}
 		
@@ -76,11 +84,51 @@ public class ManagerClient extends Client
 		{
 			String cityAcronym = this.managerId.substring(0, 3);
 			IFlightReservationServer flightReservationServer = ServerLocator.locateServer(this.baseUrl + cityAcronym);
-			RecordOperation recordOperation = new RecordOperation(this.managerId, recordId);
-			return flightReservationServer.editFlightRecord(recordOperation, operation, flight);
+			RecordOperation recordOperation = new RecordOperation(this.managerId, recordId, operation);
+			switch(operation){
+			case ADD:
+				try{
+					boolean result = flightReservationServer.editFlightRecord(recordOperation, flightParameter, flightParameters);
+					if(result){
+						this.logger.log(managerId, LogOperation.ADD_FLIGHT.name() + " [SUCCESS]", flightParameters.toString());	
+					} else {
+						this.logger.log(managerId, LogOperation.ADD_FLIGHT.name() + " [FAIL]", flightParameters.toString());	
+					}
+					return result;
+				}catch(RemoteException e){
+					this.logger.log(managerId, LogOperation.REMOTE_EXCEPTION.name(), e.getMessage());	
+				}
+			case EDIT:
+				try{
+					boolean result = flightReservationServer.editFlightRecord(recordOperation, flightParameter, flightParameters);
+					if(result){
+						this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name() + " [SUCCESS]", recordOperation.getRecordId() + " : " + flightParameters.toString());	
+					} else {
+						this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name() + " [FAIL]", recordOperation.getRecordId() + " : " + flightParameters.toString());	
+					}
+					return result;
+				}catch(RemoteException e){
+					this.logger.log(managerId, LogOperation.REMOTE_EXCEPTION.name(), e.getMessage());	
+				}
+			case REMOVE:
+				try{
+					boolean result = flightReservationServer.editFlightRecord(recordOperation, flightParameter, flightParameters);
+					if(result){
+						this.logger.log(managerId, LogOperation.REMOVE_FLIGHT.name() + " [SUCCESS]", recordOperation.getRecordId() + " : " + flightParameters.toString());	
+					} else {
+						this.logger.log(managerId, LogOperation.REMOVE_FLIGHT.name() + " [FAIL]", recordOperation.getRecordId() + " : " + flightParameters.toString());	
+					}
+					return result;
+				}catch(RemoteException e){
+					this.logger.log(managerId, LogOperation.REMOTE_EXCEPTION.name(), e.getMessage());	
+				}
+			default:
+				this.logger.log(managerId, LogOperation.UNKNOWN.name(), operation.name());
+				return false;	
+			}
 		} catch (Exception e)
 		{
-			e.printStackTrace();
+			this.logger.log(managerId, LogOperation.EXCEPTION.name(), e.getMessage());
 			return false;
 		}
 	}

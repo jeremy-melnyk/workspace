@@ -7,6 +7,7 @@ import java.net.SocketException;
 
 import database.IPassengerRecordDb;
 import enums.FlightClass;
+import log.ILogger;
 
 public class BookedFlightCountHandler implements Runnable
 {
