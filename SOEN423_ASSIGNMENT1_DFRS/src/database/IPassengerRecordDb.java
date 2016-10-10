@@ -9,7 +9,7 @@ public interface IPassengerRecordDb {
 	public int numberOfRecords();
 	public int numberOfRecords(FlightClass flightClass);
 	
-	public boolean addRecord(PassengerRecord passengerRecord);
+	public boolean addRecord(PassengerRecord passengerRecord) throws Exception;
 	public PassengerRecord getRecord(int recordId);
 	public PassengerRecord removeRecord(int recordId);
 	

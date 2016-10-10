@@ -67,7 +67,7 @@ public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordD
 	}
 
 	@Override
-	public boolean addRecord(PassengerRecord passengerRecord)
+	public boolean addRecord(PassengerRecord passengerRecord) throws Exception
 	{
 		if(passengerRecord == null){
 			return false;
@@ -76,7 +76,7 @@ public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordD
 		Passenger passenger = passengerRecord.getPassenger();
 		String lastName = passenger.getLastName();
 		if(lastName.length() < 1){
-			return false;
+			throw new IllegalArgumentException("Passenger last name was empty");
 		}
 		
 		char firstLetter = (char) lastName.charAt(0);
@@ -94,12 +94,12 @@ public class PassengerRecordDb extends ConcurrentDb implements IPassengerRecordD
 				if(!innerRecords.containsValue(passengerRecord)){
 					innerRecords.put(this.RECORD_ID++, passengerRecord);
 					return true;
-				}	
+				}
+				throw new Exception("[FAILED] Passenger record already exists: " + passengerRecord);
 			}
 		} finally{
 			releaseWrite();	
-		} 
-		return false;
+		}
 	}
 
 	@Override

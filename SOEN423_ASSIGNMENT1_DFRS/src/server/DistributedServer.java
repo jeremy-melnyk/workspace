@@ -5,10 +5,15 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.logging.Logger;
 
 import database.FlightDb;
 import database.PassengerRecordDb;
 import enums.FlightClass;
+import enums.FlightDbOperation;
+import log.CustomLogger;
+import log.ILogger;
+import log.TextFileLog;
 import models.City;
 import models.Flight;
 import models.FlightServerAddress;
@@ -45,9 +50,27 @@ public class DistributedServer
 			othersForNewDelhi.add(washingtonAddress);
 			othersForNewDelhi.add(montrealAddress);
 			
-			IFlightReservationServer montreal = new FlightReservationServer(PORT, UDP_PORT_MTL, THREAD_POOL_SIZE, othersForMontreal, "MTL", new PassengerRecordDb(), montrealFlights);
-			IFlightReservationServer washington = new FlightReservationServer(PORT, UDP_PORT_WST, THREAD_POOL_SIZE, othersForWashington, "WST", new PassengerRecordDb(), washingtonFlights);
-			IFlightReservationServer newDelhi = new FlightReservationServer(PORT, UDP_PORT_NDL, THREAD_POOL_SIZE, othersForNewDelhi, "NDL", new PassengerRecordDb(), newDelhiFlights);
+			List<String> montrealManagers = new ArrayList<String>();
+			montrealManagers.add("MTL1111");
+			montrealManagers.add("MTL1112");
+			montrealManagers.add("MTL1113");
+			
+			List<String> washingtonManagers = new ArrayList<String>();
+			washingtonManagers.add("WST1111");
+			washingtonManagers.add("WST1112");
+			washingtonManagers.add("WST1113");
+			
+			List<String> newDelhiManagers = new ArrayList<String>();
+			newDelhiManagers.add("NDL1111");
+			newDelhiManagers.add("NDL1112");
+			newDelhiManagers.add("NDL1113");
+			
+			// TODO: Make concurrent
+			ILogger logger = new CustomLogger(new TextFileLog());
+			
+			IFlightReservationServer montreal = new FlightReservationServer(PORT, UDP_PORT_MTL, THREAD_POOL_SIZE, othersForMontreal, "MTL", new PassengerRecordDb(), montrealFlights, montrealManagers, logger);
+			IFlightReservationServer washington = new FlightReservationServer(PORT, UDP_PORT_WST, THREAD_POOL_SIZE, othersForWashington, "WST", new PassengerRecordDb(), washingtonFlights, washingtonManagers, logger);
+			IFlightReservationServer newDelhi = new FlightReservationServer(PORT, UDP_PORT_NDL, THREAD_POOL_SIZE, othersForNewDelhi, "NDL", new PassengerRecordDb(), newDelhiFlights, newDelhiManagers, logger);
 			LocateRegistry.createRegistry(PORT);
 			
 			// Create some initial flights
@@ -59,22 +82,22 @@ public class DistributedServer
 			Date date1 = new GregorianCalendar(2016, Calendar.DECEMBER, 20).getTime();
 			
 			Flight flight0 = new Flight(FlightClass.FIRST, washingtonCity, date0, 20);
-			montreal.editFlightRecord(flight0);
+			montreal.editFlightRecord(null, FlightDbOperation.ADD, flight0);
 			
 			Flight flight1 = new Flight(FlightClass.BUSINESS, washingtonCity, date0, 25);
-			montreal.editFlightRecord(flight1);
+			montreal.editFlightRecord(null, FlightDbOperation.ADD, flight1);
 			
 			Flight flight2 = new Flight(FlightClass.ECONOMY, washingtonCity, date0, 50);
-			montreal.editFlightRecord(flight2);
+			montreal.editFlightRecord(null, FlightDbOperation.ADD, flight2);
 			
 			Flight flight3 = new Flight(FlightClass.FIRST, montrealCity, date1, 25);
-			washington.editFlightRecord(flight3);
+			washington.editFlightRecord(null, FlightDbOperation.ADD, flight3);
 			
 			Flight flight4 = new Flight(FlightClass.ECONOMY, newDelhiCity, date1, 75);
-			washington.editFlightRecord(flight4);
+			washington.editFlightRecord(null, FlightDbOperation.ADD, flight4);
 			
 			Flight flight5 = new Flight(FlightClass.FIRST, washingtonCity, date1, 75);
-			newDelhi.editFlightRecord(flight5);
+			newDelhi.editFlightRecord(null, FlightDbOperation.ADD, flight5);
 			
 			montreal.registerServer();
 			washington.registerServer();

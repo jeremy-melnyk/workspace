@@ -76,8 +76,8 @@ public class FlightDb extends ConcurrentDb implements IFlightDb
 			if (!this.flights.containsValue(flight))
 			{
 				int recordId = this.RECORD_ID++;
-				this.flights.put(recordId, flight);
 				flight.setRecordId(recordId);
+				this.flights.put(recordId, flight);
 				return true;
 			}
 			return false;
@@ -117,6 +117,35 @@ public class FlightDb extends ConcurrentDb implements IFlightDb
 		try
 		{
 			return this.flights.remove(recordId);
+		} finally
+		{
+			releaseWrite();
+		}
+	}
+	
+	@Override
+	public Flight editFlight(int recordId, Flight newFlight)
+	{
+		if (recordId < 0)
+		{
+			return null;
+		}
+		
+		if (newFlight == null)
+		{
+			return null;
+		}
+		
+		requestWrite();
+		try
+		{
+			Flight flight = this.flights.get(recordId);
+			if(flight == null){
+				return null;
+			}
+			newFlight.setRecordId(flight.getRecordId());
+			flight = newFlight;
+			return flight;
 		} finally
 		{
 			releaseWrite();

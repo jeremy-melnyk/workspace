@@ -13,6 +13,7 @@ public interface IFlightDb {
 	public boolean addFlight(Flight flight);
 	public Flight getFlight(int recordId);
 	public Flight removeFlight(int recordId);
+	public Flight editFlight(int recordId, Flight newFlight);
 	
 	public boolean acquireSeat(int recordId);
 	public boolean releaseSeat(int recordId);
