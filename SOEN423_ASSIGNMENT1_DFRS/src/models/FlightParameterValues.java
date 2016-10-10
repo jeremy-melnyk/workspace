@@ -1,10 +1,12 @@
 package models;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import enums.FlightClass;
 
-public class FlightParameterValues {
+public class FlightParameterValues implements Serializable{
+	private static final long serialVersionUID = 1L;
 	private FlightClass flightClass;
 	private City destination;
 	private Date date;

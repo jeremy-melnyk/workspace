@@ -148,12 +148,16 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 			switch(flightParameter){
 			case DATE:
 				flight.setDate(flightParameters.getDate());
+				break;
 			case DESTINATION:
 				flight.setDestination(flightParameters.getDestination());
+				break;
 			case FLIGHTCLASS:
 				flight.setFlightClass(flightParameters.getFlightClass());
+				break;
 			case SEATS:
 				flight.setSeats(flightParameters.getSeats());
+				break;
 			default:
 				break;		
 			}

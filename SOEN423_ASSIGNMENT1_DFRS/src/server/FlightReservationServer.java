@@ -146,7 +146,6 @@ public class FlightReservationServer implements IFlightReservationServer
 			builder.append(secondResult.getServerName() + " " + secondResult.getCount());
 			this.logger.log(this.cityAcronym, LogOperation.BOOK_COUNT_REQUEST.name(), builder.toString());
 			this.logger.log(managerId, LogOperation.BOOK_COUNT_REQUEST.name(), builder.toString());
-			builder.append(System.lineSeparator());
 			return builder.toString();
 		} catch (Exception e)
 		{
