@@ -82,17 +82,26 @@ public class Flight implements Serializable {
 
 	public void setSeats(int seats)
 	{
-		int seatDifference = this.seats - seats;
-		int newAvailableSeatCount = this.availableSeats - seatDifference;
-		if (newAvailableSeatCount > 0){
-			this.availableSeats = newAvailableSeatCount;
-		} else {
-			this.availableSeats = 0;
+		if(seats < 0){
+			seats = 0;
 		}
+		
+		if(seats > this.seats){
+			int numOfNewSeats = seats - this.seats;
+			availableSeats += numOfNewSeats;
+		} else if (seats < this.seats){
+			int numOfReducedSeats = this.seats - seats;
+			availableSeats -= numOfReducedSeats;
+		}
+		this.seats = seats;
 	}
 	
 	public int getAvailableSeats(){
 		return availableSeats;
+	}
+	
+	public void setAvailableSeats(int availableSeats){
+		this.availableSeats = availableSeats;
 	}
 	
 	public boolean acquireSeat(){
@@ -116,9 +125,12 @@ public class Flight implements Serializable {
 	{
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + availableSeats;
 		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + ((destination == null) ? 0 : destination.hashCode());
 		result = prime * result + ((flightClass == null) ? 0 : flightClass.hashCode());
+		result = prime * result + recordId;
+		result = prime * result + seats;
 		return result;
 	}
 
@@ -132,6 +144,8 @@ public class Flight implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		Flight other = (Flight) obj;
+		if (availableSeats != other.availableSeats)
+			return false;
 		if (date == null)
 		{
 			if (other.date != null)
@@ -145,6 +159,10 @@ public class Flight implements Serializable {
 		} else if (!destination.equals(other.destination))
 			return false;
 		if (flightClass != other.flightClass)
+			return false;
+		if (recordId != other.recordId)
+			return false;
+		if (seats != other.seats)
 			return false;
 		return true;
 	}

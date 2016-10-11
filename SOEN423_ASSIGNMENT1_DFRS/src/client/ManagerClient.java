@@ -2,6 +2,9 @@ package client;
 
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import enums.FlightClass;
 import enums.FlightDbOperation;
@@ -80,6 +83,16 @@ public class ManagerClient extends Client
 			return false;
 		}
 		
+		if(operation == null){
+			this.logger.log(managerId, LogOperation.ILLEGAL_ARGUMENT_EXCEPTION.name(), "No FlightDbOperation was set.");
+			return false;
+		}
+		
+		if(flightParameters == null){
+			this.logger.log(managerId, LogOperation.ILLEGAL_ARGUMENT_EXCEPTION.name(), "No FlightParameters were set.");
+			return false;
+		}
+		
 		try
 		{
 			String cityAcronym = this.managerId.substring(0, 3);
@@ -128,8 +141,33 @@ public class ManagerClient extends Client
 			}
 		} catch (Exception e)
 		{
+			e.printStackTrace();
 			this.logger.log(managerId, LogOperation.EXCEPTION.name(), e.getMessage());
 			return false;
+		}
+	}
+	
+	public void displayFlights(List<Flight> flights){
+		if(flights == null){
+			return;
+		}
+		
+		for(Flight flight : flights){
+			System.out.println(flight);
+		}
+	}
+	
+	public List<Flight> getFlights(){
+		try
+		{
+			String cityAcronym = this.managerId.substring(0, 3);
+			final ExecutorService executorService = Executors.newFixedThreadPool(3);
+			final Future<List<Flight>> flights = executorService.submit(new GetFlightsTask(this.baseUrl + cityAcronym));
+			return flights.get();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			return null;
 		}
 	}
 }

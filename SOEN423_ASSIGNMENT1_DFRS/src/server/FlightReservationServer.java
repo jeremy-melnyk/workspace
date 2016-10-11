@@ -112,6 +112,7 @@ public class FlightReservationServer implements IFlightReservationServer
 				if(result){
 					this.logger.log(this.cityAcronym, LogOperation.BOOK_FLIGHT.name(), passengerRecord.toString());
 				}
+				return result;
 			} catch (Exception e)
 			{
 				this.logger.log(this.cityAcronym, LogOperation.BOOK_FLIGHT.name(), e.getMessage());
@@ -199,14 +200,34 @@ public class FlightReservationServer implements IFlightReservationServer
 			}
 			int recordIdToEdit = recordOperation.getRecordId();
 			Flight editedFlight = this.flightDb.editFlight(recordIdToEdit, flightParameter, flightParameterValues);
-			this.logger.log(this.cityAcronym, LogOperation.EDIT_FLIGHT.name(), managerId + " : " +  editedFlight.toString());
-			this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name(), editedFlight.toString());
+			if(editedFlight != null){
+				if(editedFlight.getAvailableSeats() < 0){
+					int recordsToDelete = -editedFlight.getAvailableSeats();
+					List<PassengerRecord> removedRecords = this.passengerRecordDb.removeRecords(editedFlight.getRecordId(), recordsToDelete);
+					for(int i = 0; i < removedRecords.size(); ++i){
+						this.logger.log(this.cityAcronym, LogOperation.EDIT_FLIGHT.name(), managerId + " : Removed " + removedRecords.get(i).toString() + " due to reduced available seats on " + editedFlight.toString());
+						this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name(), "Removed " + removedRecords.get(i).toString() + " due to reduced available seats on " + editedFlight.toString());
+						editedFlight.setAvailableSeats(0);
+					}
+				}
+				this.logger.log(this.cityAcronym, LogOperation.EDIT_FLIGHT.name(), managerId + " : " +  editedFlight.toString());
+				this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name(), editedFlight.toString());	
+			} else {
+				this.logger.log(this.cityAcronym, LogOperation.REMOVE_FLIGHT.name(), managerId + " : Record " + recordIdToEdit + " not longer exists!");
+				this.logger.log(managerId, LogOperation.REMOVE_FLIGHT.name(), "Record " + recordIdToEdit + " not longer exists!");	
+			}
 			return editedFlight != null;
 		case REMOVE:
 			int recordIdToRemove = recordOperation.getRecordId();
 			Flight removedFlight = this.flightDb.removeFlight(recordIdToRemove);
-			this.logger.log(this.cityAcronym, LogOperation.REMOVE_FLIGHT.name(), managerId + " : " + removedFlight.toString());
-			this.logger.log(managerId, LogOperation.REMOVE_FLIGHT.name(), removedFlight.toString());
+			if(removedFlight != null){
+				this.passengerRecordDb.removeRecords(recordIdToRemove);
+				this.logger.log(this.cityAcronym, LogOperation.REMOVE_FLIGHT.name(), managerId + " : " + removedFlight.toString());
+				this.logger.log(managerId, LogOperation.REMOVE_FLIGHT.name(), removedFlight.toString());	
+			} else {
+				this.logger.log(this.cityAcronym, LogOperation.REMOVE_FLIGHT.name(), managerId + " : Record " + recordIdToRemove + " not longer exists!");
+				this.logger.log(managerId, LogOperation.REMOVE_FLIGHT.name(), "Record " + recordIdToRemove + " not longer exists!");	
+			}
 			return removedFlight != null;
 		default:
 			this.logger.log(this.cityAcronym, LogOperation.UNKNOWN.name(), managerId + " : " + operation.name());

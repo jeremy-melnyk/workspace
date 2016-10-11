@@ -49,4 +49,53 @@ public class FlightParameterValues implements Serializable{
 	public void setSeats(int seats) {
 		this.seats = seats;
 	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((date == null) ? 0 : date.hashCode());
+		result = prime * result + ((destination == null) ? 0 : destination.hashCode());
+		result = prime * result + ((flightClass == null) ? 0 : flightClass.hashCode());
+		result = prime * result + seats;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FlightParameterValues other = (FlightParameterValues) obj;
+		if (date == null)
+		{
+			if (other.date != null)
+				return false;
+		} else if (!date.equals(other.date))
+			return false;
+		if (destination == null)
+		{
+			if (other.destination != null)
+				return false;
+		} else if (!destination.equals(other.destination))
+			return false;
+		if (flightClass != other.flightClass)
+			return false;
+		if (seats != other.seats)
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "FlightParameterValues [flightClass=" + flightClass + ", destination=" + destination + ", date=" + date
+				+ ", seats=" + seats + "]";
+	}
+	
 }

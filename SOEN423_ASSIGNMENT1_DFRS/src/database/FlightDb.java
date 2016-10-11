@@ -3,6 +3,7 @@ package database;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -269,10 +270,12 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 		requestWrite();
 		try
 		{
-			Set<Integer> keys = this.flights.keySet();
-			for (Integer key : keys)
-			{
-				flights.add(this.flights.remove(key));
+			Iterator<HashMap.Entry<Integer,Flight>> iterator = this.flights.entrySet().iterator();
+			while (iterator.hasNext()) {
+				HashMap.Entry<Integer,Flight> entry = iterator.next();
+				Flight flight = entry.getValue();
+				flights.add(flight);	
+		    	iterator.remove();
 			}
 		} finally
 		{
@@ -288,13 +291,14 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 		requestWrite();
 		try
 		{
-			Set<Integer> keys = this.flights.keySet();
-			for (Integer key : keys)
-			{
-				Flight flight = this.flights.get(key);
-				if(flight.getFlightClass().equals(flightClass)){
-					flights.add(this.flights.remove(key));	
-				}
+			Iterator<HashMap.Entry<Integer,Flight>> iterator = this.flights.entrySet().iterator();
+			while (iterator.hasNext()) {
+				HashMap.Entry<Integer,Flight> entry = iterator.next();
+				Flight flight = entry.getValue();
+			    if(flight.getFlightClass().equals(flightClass)){
+					flights.add(flight);	
+			    	iterator.remove();
+			    }
 			}
 		} finally
 		{
@@ -310,13 +314,14 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 		requestWrite();
 		try
 		{
-			Set<Integer> keys = this.flights.keySet();
-			for (Integer key : keys)
-			{
-				Flight flight = this.flights.get(key);
-				if(flight.getDate().equals(date)){
-					flights.add(this.flights.remove(key));	
-				}
+			Iterator<HashMap.Entry<Integer,Flight>> iterator = this.flights.entrySet().iterator();
+			while (iterator.hasNext()) {
+				HashMap.Entry<Integer,Flight> entry = iterator.next();
+				Flight flight = entry.getValue();
+			    if(flight.getDate().equals(date)){
+					flights.add(flight);	
+			    	iterator.remove();
+			    }
 			}
 		} finally
 		{

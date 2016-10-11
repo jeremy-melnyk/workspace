@@ -2,6 +2,7 @@ package database;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -222,10 +223,12 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 			for (Character outerKey : outerKeys)
 			{
 				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
-				Set<Integer> innerKeys = innerRecords.keySet();
-				for (Integer innerKey : innerKeys)
-				{
-					passengerRecords.add(innerRecords.remove(innerKey));
+				Iterator<HashMap.Entry<Integer,PassengerRecord>> iterator = innerRecords.entrySet().iterator();
+				while (iterator.hasNext()) {
+					HashMap.Entry<Integer,PassengerRecord> entry = iterator.next();
+					PassengerRecord record = entry.getValue();
+					passengerRecords.add(record);		
+			    	iterator.remove();
 				}
 			}
 		} finally{
@@ -244,10 +247,70 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 			for (Character outerKey : outerKeys)
 			{
 				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
-				Set<Integer> innerKeys = innerRecords.keySet();
-				for (Integer innerKey : innerKeys)
-				{
-					passengerRecords.add(innerRecords.remove(innerKey));
+				Iterator<HashMap.Entry<Integer,PassengerRecord>> iterator = innerRecords.entrySet().iterator();
+				while (iterator.hasNext()) {
+					HashMap.Entry<Integer,PassengerRecord> entry = iterator.next();
+					PassengerRecord record = entry.getValue();
+					Flight flight = record.getFlight();
+					if(flight.getFlightClass().equals(flightClass)){
+						passengerRecords.add(record);		
+				    	iterator.remove();	
+					}
+				}
+			}
+		} finally{
+			releaseWrite();	
+		} 
+		return passengerRecords;
+	}
+	
+	@Override
+	public List<PassengerRecord> removeRecords(int flightRecordId, int numOfRecords)
+	{
+		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
+		requestWrite();
+		try{
+			Set<Character> outerKeys = this.outerRecords.keySet();
+			for (Character outerKey : outerKeys)
+			{
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+				Iterator<HashMap.Entry<Integer,PassengerRecord>> iterator = innerRecords.entrySet().iterator();
+				while (iterator.hasNext()) {
+					HashMap.Entry<Integer,PassengerRecord> entry = iterator.next();
+					PassengerRecord record = entry.getValue();
+					Flight flight = record.getFlight();
+					if(numOfRecords > 0 && flight.getRecordId() == flightRecordId){
+						--numOfRecords;
+						passengerRecords.add(record);		
+				    	iterator.remove();	
+					}
+				}
+			}
+		} finally{
+			releaseWrite();	
+		} 
+		return passengerRecords;
+	}
+	
+	@Override
+	public List<PassengerRecord> removeRecords(int flightRecordId)
+	{
+		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
+		requestWrite();
+		try{
+			Set<Character> outerKeys = this.outerRecords.keySet();
+			for (Character outerKey : outerKeys)
+			{
+				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+				Iterator<HashMap.Entry<Integer,PassengerRecord>> iterator = innerRecords.entrySet().iterator();
+				while (iterator.hasNext()) {
+					HashMap.Entry<Integer,PassengerRecord> entry = iterator.next();
+					PassengerRecord record = entry.getValue();
+					Flight flight = record.getFlight();
+					if(flight.getRecordId() == flightRecordId){
+						passengerRecords.add(record);		
+				    	iterator.remove();	
+					}
 				}
 			}
 		} finally{

@@ -4,9 +4,7 @@ import java.util.List;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import enums.FlightDbOperation;
 import enums.FlightParameter;
-import log.ILogger;
 import models.Address;
 import models.Flight;
 import models.FlightClassOperation;

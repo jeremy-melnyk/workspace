@@ -18,6 +18,8 @@ public interface IPassengerRecordDb {
 	public List<PassengerRecord> getRecords(char character);
 	
 	public List<PassengerRecord> removeRecords();
+	public List<PassengerRecord> removeRecords(int flightRecordId);
+	public List<PassengerRecord> removeRecords(int flightRecordId, int numOfRecords);
 	public List<PassengerRecord> removeRecords(FlightClass flightClass);
 	public List<PassengerRecord> removeRecords(char character);
 }

@@ -127,6 +127,39 @@ public class FlightDbTests
 		assertEquals(newFlightClass, retrievedFlight.getFlightClass());
 		assertEquals(newDestination, retrievedFlight.getDestination());
 	}
+	
+	@Test
+	public void testNegativeSeats()
+	{
+		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 2);
+		this.flightDb.addFlight(mtlFlight);
+		
+		int newSeats = -5;
+		Date newDate = new Date(1000);
+		FlightClass newFlightClass = FlightClass.BUSINESS;
+		City newDestination = new City("Washington", "WST");
+		
+		FlightParameterValues params = new FlightParameterValues();
+		params.setSeats(newSeats);
+		params.setDate(newDate);
+		params.setFlightClass(newFlightClass);
+		params.setDestination(newDestination);
+		
+		mtlFlight.acquireSeat();
+		mtlFlight.acquireSeat();
+		
+		this.flightDb.editFlight(0, FlightParameter.SEATS, params);
+		this.flightDb.editFlight(0, FlightParameter.DATE, params);
+		this.flightDb.editFlight(0, FlightParameter.FLIGHTCLASS, params);
+		this.flightDb.editFlight(0, FlightParameter.DESTINATION, params);
+		
+		Flight retrievedFlight = this.flightDb.getFlight(0);
+		assertEquals(0, retrievedFlight.getSeats());
+		assertEquals(-2, retrievedFlight.getAvailableSeats());
+		assertEquals(newDate, retrievedFlight.getDate());
+		assertEquals(newFlightClass, retrievedFlight.getFlightClass());
+		assertEquals(newDestination, retrievedFlight.getDestination());
+	}
 
 	@Test
 	public void testGetFlights()
