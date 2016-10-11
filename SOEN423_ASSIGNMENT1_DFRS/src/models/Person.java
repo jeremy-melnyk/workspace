@@ -1,6 +1,10 @@
 package models;
 
-public class Person {
+import java.io.Serializable;
+
+public class Person implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
 	private String firstName;
 	private String lastName;
 	
@@ -55,5 +59,11 @@ public class Person {
 		} else if (!lastName.equals(other.lastName))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "Person [firstName=" + firstName + ", lastName=" + lastName + "]";
 	}
 }
