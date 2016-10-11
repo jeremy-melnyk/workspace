@@ -5,17 +5,14 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.logging.Logger;
 
 import database.FlightDb;
 import database.PassengerRecordDb;
 import enums.FlightClass;
 import enums.FlightDbOperation;
 import log.CustomLogger;
-import log.ILogger;
 import log.TextFileLog;
 import models.City;
-import models.Flight;
 import models.FlightParameterValues;
 import models.FlightServerAddress;
 import models.RecordOperation;
