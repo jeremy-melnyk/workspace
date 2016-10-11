@@ -81,25 +81,30 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 		}
 		
 		char firstLetter = (char) lastName.charAt(0);
+		
+		HashMap<Integer, PassengerRecord> innerRecords = null;
 		requestWrite();
 		try{
-			if(!this.outerRecords.containsKey(firstLetter)){
-				HashMap<Integer, PassengerRecord> innerRecords = new HashMap<Integer, PassengerRecord>();
+			boolean containsRecord = this.outerRecords.containsKey(firstLetter);
+			if(!containsRecord){
+				innerRecords = new HashMap<Integer, PassengerRecord>();
+				this.outerRecords.put(firstLetter, innerRecords);
+			} else {
+				innerRecords = this.outerRecords.get(firstLetter);
+			}
+		} finally {
+			releaseWrite();
+		}
+		
+		requestWrite();
+		try{
+			if(!innerRecords.containsValue(passengerRecord)){
 				int recordId = this.RECORD_ID++;
 				passengerRecord.setRecordId(recordId);
 				innerRecords.put(recordId, passengerRecord);
-				this.outerRecords.put(firstLetter, innerRecords);
 				return true;
-			} else {
-				HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(firstLetter);
-				if(!innerRecords.containsValue(passengerRecord)){
-					int recordId = this.RECORD_ID++;
-					passengerRecord.setRecordId(recordId);
-					innerRecords.put(recordId, passengerRecord);
-					return true;
-				}
-				throw new Exception("[FAILED] Already exists : " + passengerRecord);
 			}
+			throw new Exception("[FAILED] Already exists : " + passengerRecord);
 		} finally{
 			releaseWrite();	
 		}

@@ -100,7 +100,8 @@ public class FlightReservationServer implements IFlightReservationServer
 		Passenger passenger = new Passenger(firstName, lastName, phoneNumber, address);
 		Flight existingFlight = this.flightDb.getFlight(flight.getRecordId());
 		if (existingFlight == null){
-			throw new RemoteException("Flight no longer exists.");
+			this.logger.log(this.cityAcronym, LogOperation.BOOK_FLIGHT.name(), flight.toString() + " no longer exists!");
+			return false;
 		}
 		int flightRecordId = existingFlight.getRecordId();
 		if(this.flightDb.acquireSeat(flightRecordId)){
