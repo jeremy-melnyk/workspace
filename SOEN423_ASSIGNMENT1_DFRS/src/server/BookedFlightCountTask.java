@@ -7,7 +7,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.concurrent.Callable;
 
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import models.FlightCountResult;
 import models.FlightServerAddress;
 
@@ -15,9 +15,9 @@ public class BookedFlightCountTask implements Callable<FlightCountResult>
 {
 	private final int BUFFER_SIZE = 1000;
 	private final FlightServerAddress flightServerAddress;
-	private final FlightClass flightClass;
+	private final FlightClassEnum flightClass;
 	
-	public BookedFlightCountTask(FlightClass flightClass, FlightServerAddress flightServerAddress){
+	public BookedFlightCountTask(FlightClassEnum flightClass, FlightServerAddress flightServerAddress){
 		this.flightClass = flightClass;
 		this.flightServerAddress = flightServerAddress;
 	}
@@ -28,7 +28,7 @@ public class BookedFlightCountTask implements Callable<FlightCountResult>
 		return getBookedFlightCount(this.flightClass, this.flightServerAddress);
 	}
 
-	private FlightCountResult getBookedFlightCount(FlightClass flightClass, FlightServerAddress flightServerAddress) throws Exception{
+	private FlightCountResult getBookedFlightCount(FlightClassEnum flightClass, FlightServerAddress flightServerAddress) throws Exception{
 		DatagramSocket socket = null;
 		try{
 			socket = new DatagramSocket();

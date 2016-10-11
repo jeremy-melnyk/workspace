@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 import client.ManagerClient;
 import client.PassengerClient;
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import enums.FlightDbOperation;
 import enums.FlightParameter;
 import models.Address;
@@ -102,17 +102,17 @@ public class ClientProgram3
 							System.out.println("2 : BUSINESS CLASS");
 							System.out.println("3 : FIRST CLASS");
 							int classChoice = keyboard.nextInt();
-							FlightClass flightClass = null;
+							FlightClassEnum flightClass = null;
 							switch (classChoice)
 							{
 							case 1:
-								flightClass = FlightClass.ECONOMY;
+								flightClass = FlightClassEnum.ECONOMY;
 								break;
 							case 2:
-								flightClass = FlightClass.BUSINESS;
+								flightClass = FlightClassEnum.BUSINESS;
 								break;
 							case 3:
-								flightClass = FlightClass.FIRST;
+								flightClass = FlightClassEnum.FIRST;
 								break;
 							}
 							System.out.println(managerClient.getBookedFlightCount(flightClass));
@@ -133,17 +133,17 @@ public class ClientProgram3
 								System.out.println("2 : BUSINESS CLASS");
 								System.out.println("3 : FIRST CLASS");
 								int classChoiceEdit = keyboard.nextInt();
-								FlightClass flightClassEdit = null;
+								FlightClassEnum flightClassEdit = null;
 								switch (classChoiceEdit)
 								{
 								case 1:
-									flightClassEdit = FlightClass.ECONOMY;
+									flightClassEdit = FlightClassEnum.ECONOMY;
 									break;
 								case 2:
-									flightClassEdit = FlightClass.BUSINESS;
+									flightClassEdit = FlightClassEnum.BUSINESS;
 									break;
 								case 3:
-									flightClassEdit = FlightClass.FIRST;
+									flightClassEdit = FlightClassEnum.FIRST;
 									break;
 								}
 								System.out.println("Destination?");
@@ -232,17 +232,17 @@ public class ClientProgram3
 									System.out.println("2 : BUSINESS CLASS");
 									System.out.println("3 : FIRST CLASS");
 									int classChoiceEditForRecord = keyboard.nextInt();
-									FlightClass flightClassEditForRecord = null;
+									FlightClassEnum flightClassEditForRecord = null;
 									switch (classChoiceEditForRecord)
 									{
 									case 1:
-										flightClassEditForRecord = FlightClass.ECONOMY;
+										flightClassEditForRecord = FlightClassEnum.ECONOMY;
 										break;
 									case 2:
-										flightClassEditForRecord = FlightClass.BUSINESS;
+										flightClassEditForRecord = FlightClassEnum.BUSINESS;
 										break;
 									case 3:
-										flightClassEditForRecord = FlightClass.FIRST;
+										flightClassEditForRecord = FlightClassEnum.FIRST;
 										break;
 									}
 									FlightParameterValues paramsFlightClass = new FlightParameterValues();

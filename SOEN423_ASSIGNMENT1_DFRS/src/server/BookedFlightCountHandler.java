@@ -6,7 +6,7 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 
 import database.IPassengerRecordDb;
-import enums.FlightClass;
+import enums.FlightClassEnum;
 
 public class BookedFlightCountHandler implements Runnable
 {
@@ -27,7 +27,7 @@ public class BookedFlightCountHandler implements Runnable
 		try
 		{
 			String flightClassAsString = new String(request.getData()).trim();
-			FlightClass flightClass = FlightClass.toFlightClass(flightClassAsString);
+			FlightClassEnum flightClass = FlightClassEnum.toFlightClass(flightClassAsString);
 			int bookedFlightCount = this.passengerRecordDb.numberOfRecords(flightClass);
 			String bookedFlightCountAsString = Integer.toString(bookedFlightCount);
 			byte[] message = bookedFlightCountAsString.getBytes();

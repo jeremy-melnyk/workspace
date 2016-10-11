@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import enums.FlightDbOperation;
 import enums.FlightParameter;
 import enums.LogOperation;
@@ -59,7 +59,7 @@ public class ManagerClient extends Client
 		this.managerId = null;
 	}
 	
-	public String getBookedFlightCount(FlightClass flightClass)
+	public String getBookedFlightCount(FlightClassEnum flightClass)
 	{
 		if(this.managerId == null){
 			System.out.println("No manager is logged in");

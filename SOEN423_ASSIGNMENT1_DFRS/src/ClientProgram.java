@@ -6,7 +6,7 @@ import java.util.List;
 
 import client.ManagerClient;
 import client.PassengerClient;
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import enums.FlightDbOperation;
 import enums.FlightParameter;
 import models.Address;
@@ -30,13 +30,13 @@ public class ClientProgram
 					FlightParameterValues editedFlight = new FlightParameterValues();
 					editedFlight.setSeats(j);
 					City newCity = new City("Washington", "WST");
-					FlightParameterValues newFlight = new FlightParameterValues(FlightClass.BUSINESS, newCity, new Date(), 10);
+					FlightParameterValues newFlight = new FlightParameterValues(FlightClassEnum.BUSINESS, newCity, new Date(), 10);
 					managerClient.editFlightRecord(j, FlightDbOperation.ADD, FlightParameter.NONE, newFlight);
 					managerClient.editFlightRecord(j, FlightDbOperation.EDIT, FlightParameter.SEATS, editedFlight);
 					managerClient.editFlightRecord(j/2, FlightDbOperation.REMOVE, FlightParameter.NONE, editedFlight);
-					System.out.println(managerClient.getBookedFlightCount(FlightClass.FIRST));
-					System.out.println(managerClient.getBookedFlightCount(FlightClass.BUSINESS));
-					System.out.println(managerClient.getBookedFlightCount(FlightClass.ECONOMY));
+					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.FIRST));
+					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.BUSINESS));
+					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.ECONOMY));
 				}
 			});
 			threads.add(tM);
@@ -51,13 +51,13 @@ public class ClientProgram
 					Date date = new GregorianCalendar(2018, Calendar.SEPTEMBER, 20).getTime();
 					editedFlight.setDate(date);
 					City newCity = new City("NewDelhi", "NDL");
-					FlightParameterValues newFlight = new FlightParameterValues(FlightClass.BUSINESS, newCity, new Date(), 10);
+					FlightParameterValues newFlight = new FlightParameterValues(FlightClassEnum.BUSINESS, newCity, new Date(), 10);
 					managerClient.editFlightRecord(j, FlightDbOperation.ADD, FlightParameter.NONE, newFlight);
 					managerClient.editFlightRecord(j, FlightDbOperation.EDIT, FlightParameter.DATE, editedFlight);
 					managerClient.editFlightRecord(j/2, FlightDbOperation.REMOVE, FlightParameter.NONE, editedFlight);
-					System.out.println(managerClient.getBookedFlightCount(FlightClass.FIRST));
-					System.out.println(managerClient.getBookedFlightCount(FlightClass.BUSINESS));
-					System.out.println(managerClient.getBookedFlightCount(FlightClass.ECONOMY));
+					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.FIRST));
+					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.BUSINESS));
+					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.ECONOMY));
 				}
 			});
 			threads.add(tM);
@@ -69,15 +69,15 @@ public class ClientProgram
 			Thread tM = new Thread(() -> {
 				for(int j = 0; j < 20; ++j){
 					FlightParameterValues editedFlight = new FlightParameterValues();
-					editedFlight.setFlightClass(FlightClass.ECONOMY);
+					editedFlight.setFlightClass(FlightClassEnum.ECONOMY);
 					City newCity = new City("Montreal", "MTL");
-					FlightParameterValues newFlight = new FlightParameterValues(FlightClass.BUSINESS, newCity, new Date(), 10);
+					FlightParameterValues newFlight = new FlightParameterValues(FlightClassEnum.BUSINESS, newCity, new Date(), 10);
 					managerClient.editFlightRecord(j, FlightDbOperation.ADD, FlightParameter.NONE, newFlight);
 					managerClient.editFlightRecord(j, FlightDbOperation.EDIT, FlightParameter.FLIGHTCLASS, editedFlight);
 					managerClient.editFlightRecord(j/2, FlightDbOperation.REMOVE, FlightParameter.NONE, editedFlight);
-					System.out.println(managerClient.getBookedFlightCount(FlightClass.FIRST));
-					System.out.println(managerClient.getBookedFlightCount(FlightClass.BUSINESS));
-					System.out.println(managerClient.getBookedFlightCount(FlightClass.ECONOMY));
+					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.FIRST));
+					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.BUSINESS));
+					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.ECONOMY));
 				}
 			});
 			threads.add(tM);
@@ -145,9 +145,9 @@ public class ClientProgram
 		System.out.println("Finished!");
 		ManagerClient lastClient = new ManagerClient("rmi://localhost:1099/");
 		lastClient.login("MTL1111");
-		System.out.println(lastClient.getBookedFlightCount(FlightClass.FIRST));
-		System.out.println(lastClient.getBookedFlightCount(FlightClass.BUSINESS));
-		System.out.println(lastClient.getBookedFlightCount(FlightClass.ECONOMY));
+		System.out.println(lastClient.getBookedFlightCount(FlightClassEnum.FIRST));
+		System.out.println(lastClient.getBookedFlightCount(FlightClassEnum.BUSINESS));
+		System.out.println(lastClient.getBookedFlightCount(FlightClassEnum.ECONOMY));
 		System.exit(0);
 		/*
 		try

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import concurrent.ConcurrentObject;
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import enums.FlightParameter;
 import models.Flight;
 import models.FlightParameterValues;
@@ -38,7 +38,7 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 	}
 
 	@Override
-	public int numberOfFlights(FlightClass flightClass)
+	public int numberOfFlights(FlightClassEnum flightClass)
 	{
 		if (flightClass == null)
 		{
@@ -208,7 +208,7 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 	}
 
 	@Override
-	public List<Flight> getFlights(FlightClass flightClass)
+	public List<Flight> getFlights(FlightClassEnum flightClass)
 	{
 		if (flightClass == null)
 		{
@@ -285,7 +285,7 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 	}
 
 	@Override
-	public List<Flight> removeFlights(FlightClass flightClass)
+	public List<Flight> removeFlights(FlightClassEnum flightClass)
 	{
 		ArrayList<Flight> flights = new ArrayList<Flight>();
 		requestWrite();

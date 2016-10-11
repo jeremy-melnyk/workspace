@@ -8,7 +8,7 @@ import java.util.List;
 
 import database.FlightDb;
 import database.PassengerRecordDb;
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import enums.FlightDbOperation;
 import log.CustomLogger;
 import log.TextFileLog;
@@ -79,22 +79,22 @@ public class DistributedServer
 			
 			RecordOperation recordOperation = new RecordOperation("INITIAL", -1 , FlightDbOperation.ADD);
 			
-			FlightParameterValues flight0 = new FlightParameterValues(FlightClass.FIRST, washingtonCity, date0, 20);
+			FlightParameterValues flight0 = new FlightParameterValues(FlightClassEnum.FIRST, washingtonCity, date0, 20);
 			montreal.editFlightRecord(recordOperation, null, flight0);
 			
-			FlightParameterValues flight1 = new FlightParameterValues(FlightClass.BUSINESS, washingtonCity, date0, 25);
+			FlightParameterValues flight1 = new FlightParameterValues(FlightClassEnum.BUSINESS, washingtonCity, date0, 25);
 			montreal.editFlightRecord(recordOperation, null, flight1);
 			
-			FlightParameterValues flight2 = new FlightParameterValues(FlightClass.ECONOMY, washingtonCity, date0, 50);
+			FlightParameterValues flight2 = new FlightParameterValues(FlightClassEnum.ECONOMY, washingtonCity, date0, 50);
 			montreal.editFlightRecord(recordOperation, null, flight2);
 			
-			FlightParameterValues flight3 = new FlightParameterValues(FlightClass.FIRST, montrealCity, date1, 25);
+			FlightParameterValues flight3 = new FlightParameterValues(FlightClassEnum.FIRST, montrealCity, date1, 25);
 			washington.editFlightRecord(recordOperation, null, flight3);
 			
-			FlightParameterValues flight4 = new FlightParameterValues(FlightClass.ECONOMY, newDelhiCity, date1, 75);
+			FlightParameterValues flight4 = new FlightParameterValues(FlightClassEnum.ECONOMY, newDelhiCity, date1, 75);
 			washington.editFlightRecord(recordOperation, null, flight4);
 			
-			FlightParameterValues flight5 = new FlightParameterValues(FlightClass.FIRST, washingtonCity, date1, 75);
+			FlightParameterValues flight5 = new FlightParameterValues(FlightClassEnum.FIRST, washingtonCity, date1, 75);
 			newDelhi.editFlightRecord(recordOperation, null, flight5);
 			
 			montreal.registerServer();

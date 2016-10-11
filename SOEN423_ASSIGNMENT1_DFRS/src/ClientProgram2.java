@@ -4,7 +4,7 @@ import java.util.List;
 
 import client.ManagerClient;
 import client.PassengerClient;
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import enums.FlightDbOperation;
 import enums.FlightParameter;
 import models.Address;
@@ -46,19 +46,19 @@ public class ClientProgram2
 		int dateCount = 1000;
 		
 		// MTL 25 seats each class = 75 total
-		FlightParameterValues businessToMtl = new FlightParameterValues(FlightClass.BUSINESS, mtl, new Date(dateCount++), 25);
-		FlightParameterValues economyToMtl = new FlightParameterValues(FlightClass.ECONOMY, mtl, new Date(dateCount++), 25);
-		FlightParameterValues firstToMtl = new FlightParameterValues(FlightClass.FIRST, mtl, new Date(dateCount++), 25);
+		FlightParameterValues businessToMtl = new FlightParameterValues(FlightClassEnum.BUSINESS, mtl, new Date(dateCount++), 25);
+		FlightParameterValues economyToMtl = new FlightParameterValues(FlightClassEnum.ECONOMY, mtl, new Date(dateCount++), 25);
+		FlightParameterValues firstToMtl = new FlightParameterValues(FlightClassEnum.FIRST, mtl, new Date(dateCount++), 25);
 		
 		// WST 50 seats each class = 150 total
-		FlightParameterValues businessToWst = new FlightParameterValues(FlightClass.BUSINESS, wst, new Date(dateCount++), 50);
-		FlightParameterValues economyToWst = new FlightParameterValues(FlightClass.ECONOMY, wst, new Date(dateCount++), 50);
-		FlightParameterValues firstToWst = new FlightParameterValues(FlightClass.ECONOMY, wst, new Date(dateCount++), 50);
+		FlightParameterValues businessToWst = new FlightParameterValues(FlightClassEnum.BUSINESS, wst, new Date(dateCount++), 50);
+		FlightParameterValues economyToWst = new FlightParameterValues(FlightClassEnum.ECONOMY, wst, new Date(dateCount++), 50);
+		FlightParameterValues firstToWst = new FlightParameterValues(FlightClassEnum.ECONOMY, wst, new Date(dateCount++), 50);
 		
 		// NDL 100 seats each class = 300 total
-		FlightParameterValues businessToNdl = new FlightParameterValues(FlightClass.FIRST, ndl, new Date(dateCount++), 100);
-		FlightParameterValues economyToNdl = new FlightParameterValues(FlightClass.FIRST, ndl, new Date(dateCount++), 100);
-		FlightParameterValues firstToNdl = new FlightParameterValues(FlightClass.FIRST, ndl, new Date(dateCount++), 100);
+		FlightParameterValues businessToNdl = new FlightParameterValues(FlightClassEnum.FIRST, ndl, new Date(dateCount++), 100);
+		FlightParameterValues economyToNdl = new FlightParameterValues(FlightClassEnum.FIRST, ndl, new Date(dateCount++), 100);
+		FlightParameterValues firstToNdl = new FlightParameterValues(FlightClassEnum.FIRST, ndl, new Date(dateCount++), 100);
 		
 		FlightParameterValues seats0Edit = new FlightParameterValues();
 		seats0Edit.setSeats(0);
@@ -67,13 +67,13 @@ public class ClientProgram2
 		seats50Edit.setSeats(50);
 		
 		FlightParameterValues businessEdit = new FlightParameterValues();
-		businessEdit.setFlightClass(FlightClass.BUSINESS);
+		businessEdit.setFlightClass(FlightClassEnum.BUSINESS);
 		
 		FlightParameterValues economyEdit = new FlightParameterValues();
-		economyEdit.setFlightClass(FlightClass.ECONOMY);
+		economyEdit.setFlightClass(FlightClassEnum.ECONOMY);
 		
 		FlightParameterValues firstEdit = new FlightParameterValues();
-		firstEdit.setFlightClass(FlightClass.FIRST);
+		firstEdit.setFlightClass(FlightClassEnum.FIRST);
 		
 		FlightParameterValues mtlEdit = new FlightParameterValues();
 		mtlEdit.setDestination(mtl);
@@ -91,7 +91,7 @@ public class ClientProgram2
 			mtlManager1.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, businessToNdl);
 			//mtlManager1.editFlightRecord(0, FlightDbOperation.EDIT, FlightParameter.SEATS, seats0Edit);
 			mtlManager1.editFlightRecord(0, FlightDbOperation.EDIT, FlightParameter.FLIGHTCLASS, economyEdit);
-			mtlManager1.getBookedFlightCount(FlightClass.BUSINESS);
+			mtlManager1.getBookedFlightCount(FlightClassEnum.BUSINESS);
 		});
 		threads.add(mtlManagerThread1);
 		mtlManagerThread1.start();
@@ -100,7 +100,7 @@ public class ClientProgram2
 			mtlManager2.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, economyToNdl);
 			//mtlManager2.editFlightRecord(1, FlightDbOperation.EDIT, FlightParameter.SEATS, seats0Edit);
 			mtlManager2.editFlightRecord(1, FlightDbOperation.EDIT, FlightParameter.FLIGHTCLASS, economyEdit);
-			mtlManager2.getBookedFlightCount(FlightClass.ECONOMY);
+			mtlManager2.getBookedFlightCount(FlightClassEnum.ECONOMY);
 		});
 		threads.add(mtlManagerThread2);
 		mtlManagerThread2.start();
@@ -109,7 +109,7 @@ public class ClientProgram2
 			mtlManager3.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, firstToNdl);
 			//mtlManager3.editFlightRecord(2, FlightDbOperation.EDIT, FlightParameter.SEATS, seats0Edit);
 			mtlManager3.editFlightRecord(2, FlightDbOperation.EDIT, FlightParameter.FLIGHTCLASS, economyEdit);
-			mtlManager3.getBookedFlightCount(FlightClass.FIRST);
+			mtlManager3.getBookedFlightCount(FlightClassEnum.FIRST);
 		});
 		threads.add(mtlManagerThread3);
 		mtlManagerThread3.start();
@@ -118,7 +118,7 @@ public class ClientProgram2
 			wstManager1.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, businessToMtl);
 			//wstManager1.editFlightRecord(0, FlightDbOperation.EDIT, FlightParameter.SEATS, seats50Edit);
 			wstManager1.editFlightRecord(0, FlightDbOperation.EDIT, FlightParameter.FLIGHTCLASS, businessEdit);
-			wstManager1.getBookedFlightCount(FlightClass.BUSINESS);
+			wstManager1.getBookedFlightCount(FlightClassEnum.BUSINESS);
 		});
 		threads.add(wstManagerThread1);
 		wstManagerThread1.start();
@@ -127,7 +127,7 @@ public class ClientProgram2
 			wstManager2.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, economyToMtl);
 			//wstManager2.editFlightRecord(1, FlightDbOperation.EDIT, FlightParameter.SEATS, seats50Edit);
 			wstManager2.editFlightRecord(1, FlightDbOperation.EDIT, FlightParameter.FLIGHTCLASS, businessEdit);
-			wstManager2.getBookedFlightCount(FlightClass.ECONOMY);
+			wstManager2.getBookedFlightCount(FlightClassEnum.ECONOMY);
 		});
 		threads.add(wstManagerThread2);
 		wstManagerThread2.start();
@@ -136,7 +136,7 @@ public class ClientProgram2
 			wstManager3.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, firstToMtl);
 			//wstManager3.editFlightRecord(2, FlightDbOperation.EDIT, FlightParameter.SEATS, seats50Edit);
 			wstManager3.editFlightRecord(2, FlightDbOperation.EDIT, FlightParameter.FLIGHTCLASS, businessEdit);
-			wstManager3.getBookedFlightCount(FlightClass.FIRST);
+			wstManager3.getBookedFlightCount(FlightClassEnum.FIRST);
 			wstManager3.editFlightRecord(2, FlightDbOperation.EDIT, FlightParameter.DESTINATION, ndlEdit);
 		});
 		threads.add(wstManagerThread3);
@@ -145,7 +145,7 @@ public class ClientProgram2
 		Thread ndlManagerThread1 = new Thread(() -> {
 			ndlManager1.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, businessToWst);
 			ndlManager1.editFlightRecord(0, FlightDbOperation.EDIT, FlightParameter.FLIGHTCLASS, firstEdit);
-			ndlManager1.getBookedFlightCount(FlightClass.BUSINESS);
+			ndlManager1.getBookedFlightCount(FlightClassEnum.BUSINESS);
 			//ndlManager1.editFlightRecord(0, FlightDbOperation.REMOVE, FlightParameter.NONE, firstEdit);
 		});
 		threads.add(ndlManagerThread1);
@@ -154,7 +154,7 @@ public class ClientProgram2
 		Thread ndlManagerThread2 = new Thread(() -> {
 			ndlManager2.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, economyToWst);
 			ndlManager2.editFlightRecord(1, FlightDbOperation.EDIT, FlightParameter.FLIGHTCLASS, firstEdit);
-			ndlManager2.getBookedFlightCount(FlightClass.ECONOMY);
+			ndlManager2.getBookedFlightCount(FlightClassEnum.ECONOMY);
 			//ndlManager2.editFlightRecord(1, FlightDbOperation.REMOVE, FlightParameter.NONE, firstEdit);
 		});
 		threads.add(ndlManagerThread2);
@@ -163,7 +163,7 @@ public class ClientProgram2
 		Thread ndlManagerThread3 = new Thread(() -> {
 			ndlManager3.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, firstToWst);
 			ndlManager3.editFlightRecord(2, FlightDbOperation.EDIT, FlightParameter.FLIGHTCLASS, firstEdit);
-			ndlManager3.getBookedFlightCount(FlightClass.FIRST);
+			ndlManager3.getBookedFlightCount(FlightClassEnum.FIRST);
 			//ndlManager3.editFlightRecord(2, FlightDbOperation.REMOVE, FlightParameter.NONE, firstEdit);
 			ndlManager3.editFlightRecord(2, FlightDbOperation.EDIT, FlightParameter.DATE, dateEdit);
 		});

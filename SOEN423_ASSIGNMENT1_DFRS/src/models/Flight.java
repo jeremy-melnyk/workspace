@@ -3,36 +3,41 @@ package models;
 import java.io.Serializable;
 import java.util.Date;
 
-import enums.FlightClass;
+import enums.FlightClassEnum;
 
 public class Flight implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	private int recordId;
-	private FlightClass flightClass;
 	private City destination;
 	private Date date;
-	private int seats;
-	private int availableSeats;
+	private FlightClass firstClass;
+	private FlightClass businessClass;
+	private FlightClass economyClass;
 
-	public Flight(FlightClass flightClass, City destination, Date date, int seats) {
+	public Flight(City destination, Date date, int firstClassSeats, int economyClassSeats, int businessClassSeats) {
 		super();
 		this.recordId = -1;
-		this.flightClass = flightClass;
 		this.destination = destination;
 		this.date = date;
-		this.seats = seats;
-		this.availableSeats = seats;
+		this.firstClass = new FlightClass(FlightClassEnum.FIRST, firstClassSeats, firstClassSeats);
+		this.businessClass = new FlightClass(FlightClassEnum.BUSINESS, businessClassSeats, businessClassSeats);
+		this.economyClass = new FlightClass(FlightClassEnum.ECONOMY, economyClassSeats, economyClassSeats);
 	}
 	
-	public Flight(FlightParameterValues flightParameters) {
+	public Flight(FlightParameterValues flightParameterValues) {
 		super();
 		this.recordId = -1;
-		this.flightClass = flightParameters.getFlightClass();
-		this.destination = flightParameters.getDestination();
-		this.date = flightParameters.getDate();
-		this.seats = flightParameters.getSeats();
-		this.availableSeats = this.seats;
+		this.destination = flightParameterValues.getDestination();
+		this.date = flightParameterValues.getDate();
+		
+		FlightClassParameterValues firstClassValues = flightParameterValues.getFirstClass();
+		FlightClassParameterValues businessClassValues = flightParameterValues.getBusinessClass();
+		FlightClassParameterValues economyClassValues = flightParameterValues.getEconomyClass();
+		
+		this.firstClass = new FlightClass(FlightClassEnum.FIRST, firstClassValues.getSeats(), firstClassValues.getAvailableSeats());
+		this.businessClass = new FlightClass(FlightClassEnum.BUSINESS, businessClassValues.getSeats(), businessClassValues.getAvailableSeats());
+		this.economyClass = new FlightClass(FlightClassEnum.ECONOMY, economyClassValues.getSeats(), economyClassValues.getAvailableSeats());
 	}
 
 	public int getRecordId()
@@ -43,16 +48,6 @@ public class Flight implements Serializable {
 	public void setRecordId(int recordId)
 	{
 		this.recordId = recordId;
-	}
-	
-	public FlightClass getFlightClass()
-	{
-		return flightClass;
-	}
-
-	public void setFlightClass(FlightClass flightClass)
-	{
-		this.flightClass = flightClass;
 	}
 
 	public City getDestination()
@@ -75,68 +70,45 @@ public class Flight implements Serializable {
 		this.date = date;
 	}
 
-	public int getSeats()
-	{
-		return seats;
+	public FlightClass getFirstClass() {
+		return firstClass;
 	}
 
-	public void setSeats(int seats)
-	{
-		if(seats < 0){
-			seats = 0;
-		}
-		
-		if(seats > this.seats){
-			int numOfNewSeats = seats - this.seats;
-			availableSeats += numOfNewSeats;
-		} else if (seats < this.seats){
-			int numOfReducedSeats = this.seats - seats;
-			availableSeats -= numOfReducedSeats;
-		}
-		this.seats = seats;
+	public void setFirstClass(FlightClass firstClass) {
+		this.firstClass = firstClass;
 	}
-	
-	public int getAvailableSeats(){
-		return availableSeats;
+
+	public FlightClass getBusinessClass() {
+		return businessClass;
 	}
-	
-	public void setAvailableSeats(int availableSeats){
-		this.availableSeats = availableSeats;
+
+	public void setBusinessClass(FlightClass businessClass) {
+		this.businessClass = businessClass;
 	}
-	
-	public boolean acquireSeat(){
-		if (this.availableSeats > 0){
-			--this.availableSeats;
-			return true;
-		}
-		return false;
+
+	public FlightClass getEconomyClass() {
+		return economyClass;
 	}
-	
-	public boolean releaseSeat(){
-		if (this.availableSeats < this.seats){
-			++this.availableSeats;
-			return true;
-		}
-		return false;
+
+	public void setEconomyClass(FlightClass economyClass) {
+		this.economyClass = economyClass;
 	}
-	
+
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + availableSeats;
+		result = prime * result + ((businessClass == null) ? 0 : businessClass.hashCode());
 		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + ((destination == null) ? 0 : destination.hashCode());
-		result = prime * result + ((flightClass == null) ? 0 : flightClass.hashCode());
+		result = prime * result + ((economyClass == null) ? 0 : economyClass.hashCode());
+		result = prime * result + ((firstClass == null) ? 0 : firstClass.hashCode());
 		result = prime * result + recordId;
-		result = prime * result + seats;
 		return result;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
+	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
 		if (obj == null)
@@ -144,33 +116,40 @@ public class Flight implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		Flight other = (Flight) obj;
-		if (availableSeats != other.availableSeats)
+		if (businessClass == null) {
+			if (other.businessClass != null)
+				return false;
+		} else if (!businessClass.equals(other.businessClass))
 			return false;
-		if (date == null)
-		{
+		if (date == null) {
 			if (other.date != null)
 				return false;
 		} else if (!date.equals(other.date))
 			return false;
-		if (destination == null)
-		{
+		if (destination == null) {
 			if (other.destination != null)
 				return false;
 		} else if (!destination.equals(other.destination))
 			return false;
-		if (flightClass != other.flightClass)
+		if (economyClass == null) {
+			if (other.economyClass != null)
+				return false;
+		} else if (!economyClass.equals(other.economyClass))
+			return false;
+		if (firstClass == null) {
+			if (other.firstClass != null)
+				return false;
+		} else if (!firstClass.equals(other.firstClass))
 			return false;
 		if (recordId != other.recordId)
-			return false;
-		if (seats != other.seats)
 			return false;
 		return true;
 	}
 
 	@Override
-	public String toString()
-	{
-		return "Flight [recordId=" + recordId + ", flightClass=" + flightClass + ", destination=" + destination
-				+ ", date=" + date + ", seats=" + seats + ", availableSeats=" + availableSeats + "]";
-	}	
+	public String toString() {
+		return "Flight [recordId=" + recordId + ", destination=" + destination + ", date=" + date + ", firstClass="
+				+ firstClass + ", businessClass=" + businessClass + ", economyClass=" + economyClass + "]";
+	}
+	
 }

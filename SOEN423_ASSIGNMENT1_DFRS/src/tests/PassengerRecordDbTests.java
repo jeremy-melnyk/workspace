@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import database.IPassengerRecordDb;
 import database.PassengerRecordDb;
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import models.Address;
 import models.City;
 import models.Flight;
@@ -43,7 +43,7 @@ public class PassengerRecordDbTests
 	@Test
 	public void testNumberOfRecords()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(FlightClassEnum.FIRST, new City("Montreal", "MTL"), new Date(), 10);
 		Address firstAddress = new Address("SomeStreet", "SomeCity", "SomeProvince", "SomePostalCode", "SomeCountry");
 		Passenger firstPassenger = new Passenger("John", "Doe", "5141234578", firstAddress);
 		Passenger secondPassenger = new Passenger("Alex", "Galchenyuk", "5141234578", firstAddress);
@@ -67,8 +67,8 @@ public class PassengerRecordDbTests
 	@Test
 	public void testNumberOfRecordsFlightClass()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
-		Flight mtlFlight2 = new Flight(FlightClass.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(FlightClassEnum.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight2 = new Flight(FlightClassEnum.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
 		Address firstAddress = new Address("SomeStreet", "SomeCity", "SomeProvince", "SomePostalCode", "SomeCountry");
 		Passenger firstPassenger = new Passenger("John", "Doe", "5141234578", firstAddress);
 		Passenger secondPassenger = new Passenger("Alex", "Galchenyuk", "5141234578", firstAddress);
@@ -85,14 +85,14 @@ public class PassengerRecordDbTests
 		}
 		
 		int expected = 1;
-		int actual = this.passengerRecordDb.numberOfRecords(FlightClass.BUSINESS);
+		int actual = this.passengerRecordDb.numberOfRecords(FlightClassEnum.BUSINESS);
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	public void testAddRecord()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(FlightClassEnum.FIRST, new City("Montreal", "MTL"), new Date(), 10);
 		Address firstAddress = new Address("SomeStreet", "SomeCity", "SomeProvince", "SomePostalCode", "SomeCountry");
 		Passenger firstPassenger = new Passenger("John", "Doe", "5141234578", firstAddress);
 		
@@ -111,7 +111,7 @@ public class PassengerRecordDbTests
 	@Test
 	public void testGetRecord()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(FlightClassEnum.FIRST, new City("Montreal", "MTL"), new Date(), 10);
 		Address firstAddress = new Address("SomeStreet", "SomeCity", "SomeProvince", "SomePostalCode", "SomeCountry");
 		Passenger firstPassenger = new Passenger("John", "Doe", "5141234578", firstAddress);
 		
@@ -130,7 +130,7 @@ public class PassengerRecordDbTests
 	@Test
 	public void testRemoveRecord()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(FlightClassEnum.FIRST, new City("Montreal", "MTL"), new Date(), 10);
 		Address firstAddress = new Address("SomeStreet", "SomeCity", "SomeProvince", "SomePostalCode", "SomeCountry");
 		Passenger firstPassenger = new Passenger("John", "Doe", "5141234578", firstAddress);
 		
@@ -151,8 +151,8 @@ public class PassengerRecordDbTests
 	public void testGetRecords()
 	{
 		List<PassengerRecord> records = new ArrayList<PassengerRecord>();
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
-		Flight mtlFlight2 = new Flight(FlightClass.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(FlightClassEnum.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight2 = new Flight(FlightClassEnum.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
 		Address firstAddress = new Address("SomeStreet", "SomeCity", "SomeProvince", "SomePostalCode", "SomeCountry");
 		Passenger firstPassenger = new Passenger("John", "Doe", "5141234578", firstAddress);
 		Passenger secondPassenger = new Passenger("Alex", "Galchenyuk", "5141234578", firstAddress);
@@ -177,8 +177,8 @@ public class PassengerRecordDbTests
 	public void testGetRecordsFlightClass()
 	{
 		List<PassengerRecord> records = new ArrayList<PassengerRecord>();
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
-		Flight mtlFlight2 = new Flight(FlightClass.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(FlightClassEnum.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight2 = new Flight(FlightClassEnum.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
 		Address firstAddress = new Address("SomeStreet", "SomeCity", "SomeProvince", "SomePostalCode", "SomeCountry");
 		Passenger firstPassenger = new Passenger("John", "Doe", "5141234578", firstAddress);
 		Passenger secondPassenger = new Passenger("Alex", "Galchenyuk", "5141234578", firstAddress);
@@ -195,7 +195,7 @@ public class PassengerRecordDbTests
 			System.out.println(e.getMessage());
 		}
 		
-		List<PassengerRecord> retrievedRecords = this.passengerRecordDb.getRecords(FlightClass.BUSINESS);
+		List<PassengerRecord> retrievedRecords = this.passengerRecordDb.getRecords(FlightClassEnum.BUSINESS);
 		assertArrayEquals(records.toArray(), retrievedRecords.toArray());
 	}
 
@@ -203,8 +203,8 @@ public class PassengerRecordDbTests
 	public void testGetRecordsChar()
 	{
 		List<PassengerRecord> records = new ArrayList<PassengerRecord>();
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
-		Flight mtlFlight2 = new Flight(FlightClass.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(FlightClassEnum.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight2 = new Flight(FlightClassEnum.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
 		Address firstAddress = new Address("SomeStreet", "SomeCity", "SomeProvince", "SomePostalCode", "SomeCountry");
 		Passenger firstPassenger = new Passenger("John", "Doe", "5141234578", firstAddress);
 		Passenger secondPassenger = new Passenger("Alex", "Galchenyuk", "5141234578", firstAddress);
@@ -229,8 +229,8 @@ public class PassengerRecordDbTests
 	public void testRemoveRecords()
 	{
 		List<PassengerRecord> records = new ArrayList<PassengerRecord>();
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
-		Flight mtlFlight2 = new Flight(FlightClass.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(FlightClassEnum.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight2 = new Flight(FlightClassEnum.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
 		Address firstAddress = new Address("SomeStreet", "SomeCity", "SomeProvince", "SomePostalCode", "SomeCountry");
 		Passenger firstPassenger = new Passenger("John", "Doe", "5141234578", firstAddress);
 		Passenger secondPassenger = new Passenger("Alex", "Galchenyuk", "5141234578", firstAddress);
@@ -257,8 +257,8 @@ public class PassengerRecordDbTests
 	public void testRemoveRecordsFlightClass()
 	{
 		List<PassengerRecord> records = new ArrayList<PassengerRecord>();
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
-		Flight mtlFlight2 = new Flight(FlightClass.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(FlightClassEnum.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight2 = new Flight(FlightClassEnum.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
 		Address firstAddress = new Address("SomeStreet", "SomeCity", "SomeProvince", "SomePostalCode", "SomeCountry");
 		Passenger firstPassenger = new Passenger("John", "Doe", "5141234578", firstAddress);
 		Passenger secondPassenger = new Passenger("Alex", "Galchenyuk", "5141234578", firstAddress);
@@ -275,7 +275,7 @@ public class PassengerRecordDbTests
 			System.out.println(e.getMessage());
 		}
 		
-		List<PassengerRecord> retrievedRecords = this.passengerRecordDb.removeRecords(FlightClass.BUSINESS);
+		List<PassengerRecord> retrievedRecords = this.passengerRecordDb.removeRecords(FlightClassEnum.BUSINESS);
 		assertArrayEquals(records.toArray(), retrievedRecords.toArray());
 		assertEquals(1, this.passengerRecordDb.numberOfRecords());
 	}
@@ -284,8 +284,8 @@ public class PassengerRecordDbTests
 	public void testRemoveRecordsChar()
 	{
 		List<PassengerRecord> records = new ArrayList<PassengerRecord>();
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
-		Flight mtlFlight2 = new Flight(FlightClass.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(FlightClassEnum.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight2 = new Flight(FlightClassEnum.BUSINESS, new City("Montreal", "MTL"), new Date(), 10);
 		Address firstAddress = new Address("SomeStreet", "SomeCity", "SomeProvince", "SomePostalCode", "SomeCountry");
 		Passenger firstPassenger = new Passenger("John", "Doe", "5141234578", firstAddress);
 		Passenger secondPassenger = new Passenger("Alex", "Galchenyuk", "5141234578", firstAddress);

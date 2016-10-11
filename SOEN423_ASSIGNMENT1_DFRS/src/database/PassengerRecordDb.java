@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import concurrent.ConcurrentObject;
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import models.Flight;
 import models.Passenger;
 import models.PassengerRecord;
@@ -42,7 +42,7 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 	}
 
 	@Override
-	public int numberOfRecords(FlightClass flightClass)
+	public int numberOfRecords(FlightClassEnum flightClass)
 	{
 		int count = 0;
 		requestRead();
@@ -176,7 +176,7 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 	}
 	
 	@Override
-	public List<PassengerRecord> getRecords(FlightClass flightClass)
+	public List<PassengerRecord> getRecords(FlightClassEnum flightClass)
 	{
 		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
 		requestRead();
@@ -243,7 +243,7 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 	}
 
 	@Override
-	public List<PassengerRecord> removeRecords(FlightClass flightClass)
+	public List<PassengerRecord> removeRecords(FlightClassEnum flightClass)
 	{
 		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
 		requestWrite();

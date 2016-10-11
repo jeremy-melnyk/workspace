@@ -17,7 +17,7 @@ import java.util.concurrent.Future;
 
 import database.IFlightDb;
 import database.IPassengerRecordDb;
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import enums.FlightDbOperation;
 import enums.FlightParameter;
 import enums.LogOperation;
@@ -132,7 +132,7 @@ public class FlightReservationServer implements IFlightReservationServer
 	public String getBookedFlightCount(FlightClassOperation flightClassOperation) throws RemoteException
 	{		
 		StringBuilder builder = new StringBuilder();
-		FlightClass flightClass = flightClassOperation.getFlightClass();
+		FlightClassEnum flightClass = flightClassOperation.getFlightClass();
 		String managerId = flightClassOperation.getManagerId();
 		try
 		{

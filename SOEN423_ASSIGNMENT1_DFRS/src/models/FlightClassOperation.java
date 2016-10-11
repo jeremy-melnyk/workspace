@@ -2,15 +2,15 @@ package models;
 
 import java.io.Serializable;
 
-import enums.FlightClass;
+import enums.FlightClassEnum;
 
 public class FlightClassOperation implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 	private String managerId;
-	private FlightClass flightClass;
+	private FlightClassEnum flightClass;
 
-	public FlightClassOperation(String managerId, FlightClass flightClass) {
+	public FlightClassOperation(String managerId, FlightClassEnum flightClass) {
 		super();
 		this.managerId = managerId;
 		this.flightClass = flightClass;
@@ -26,12 +26,12 @@ public class FlightClassOperation implements Serializable
 		this.managerId = managerId;
 	}
 
-	public FlightClass getFlightClass()
+	public FlightClassEnum getFlightClass()
 	{
 		return flightClass;
 	}
 
-	public void setFlightClass(FlightClass flightClass)
+	public void setFlightClass(FlightClassEnum flightClass)
 	{
 		this.flightClass = flightClass;
 	};
