@@ -10,8 +10,6 @@ import enums.FlightParameter;
 import models.Address;
 import models.City;
 import models.Flight;
-import models.FlightModificationOperation;
-import models.FlightParameterValues;
 
 public class ClientProgram3
 {
@@ -90,10 +88,10 @@ public class ClientProgram3
 						Address address = new Address("Street", "City", "Province", "PostalCode", "Country");
 						if (passengerClient.bookFlight(firstName, lastName, address, "514-678-9890", chosenFlight, flightClass))
 						{
-							System.out.println(flightClass.toString() + " class on" + chosenFlight + " was booked!");
+							System.out.println("Booked " + flightClass.name() + " class on " + chosenFlight.getRecordId());
 						} else
 						{
-							System.out.println(flightClass.toString() + " class on" + chosenFlight + " could not be booked!");
+							System.out.println("Unable to book " + flightClass.name() + " class on " + chosenFlight.getRecordId());
 						}
 					}
 				} else if (choice == 2)
@@ -170,16 +168,15 @@ public class ClientProgram3
 								}
 								System.out.println("Which Date? Enter as an integer i.e. 1000");
 								int dateEdit = keyboard.nextInt();
-								FlightParameterValues params = new FlightParameterValues(destination, new Date(dateEdit), firstClassSeats, businessClassSeats, economyClassSeats);
-								FlightModificationOperation flightModificationOperation = new FlightModificationOperation(FlightParameter.NONE, FlightClassEnum.FIRST);
-								boolean result = managerClient.editFlightRecord(0, FlightDbOperation.ADD, flightModificationOperation, params);
+								Flight newFlight = new Flight(destination, new Date(dateEdit), firstClassSeats, businessClassSeats, economyClassSeats);
+								boolean result = managerClient.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, newFlight);
 								if (result)
 								{
-									System.out.println("Successfully added: " + params);
+									System.out.println("Successfully added: " + newFlight);
 									managerClient.displayFlights(managerClient.getFlights());
 								} else
 								{
-									System.out.println("Failed to add: " + params);
+									System.out.println("Failed to add: " + newFlight);
 								}
 								break;
 							case 2:
@@ -199,59 +196,42 @@ public class ClientProgram3
 									System.out.println("2 : BUSINESS CLASS");
 									System.out.println("3 : FIRST CLASS");
 									int classChoiceEdit = keyboard.nextInt();
-									FlightClassEnum flightClassEdit = null;
+									FlightParameter flightParameter = null;
 									switch (classChoiceEdit)
 									{
 									case 1:
-										flightClassEdit = FlightClassEnum.ECONOMY;
+										flightParameter = FlightParameter.ECONOMY_CLASS_SEATS;
 										break;
 									case 2:
-										flightClassEdit = FlightClassEnum.BUSINESS;
+										flightParameter = FlightParameter.BUSINESS_CLASS_SEATS;
 										break;
 									case 3:
-										flightClassEdit = FlightClassEnum.FIRST;
+										flightParameter = FlightParameter.FIRST_CLASS_SEATS;
 										break;
 									}
 									System.out.println("How many seats?");
 									int seats = keyboard.nextInt();
-									FlightParameterValues paramsSeats = null;
-									switch (flightClassEdit)
-									{
-									case ECONOMY:
-										paramsSeats = new FlightParameterValues(null, null, 0, 0, seats);
-										break;
-									case BUSINESS:
-										paramsSeats = new FlightParameterValues(null, null, 0, seats, 0);
-										break;
-									case FIRST:
-										paramsSeats = new FlightParameterValues(null, null, seats, 0, 0);
-										break;
-									}
-									FlightModificationOperation flightModificationOperationEdit = new FlightModificationOperation(FlightParameter.SEATS, flightClassEdit);
-									boolean resultSeats = managerClient.editFlightRecord(recordId, FlightDbOperation.EDIT, flightModificationOperationEdit, paramsSeats);
+									boolean resultSeats = managerClient.editFlightRecord(recordId, FlightDbOperation.EDIT, flightParameter, seats);
 									if (resultSeats)
 									{
-										System.out.println("Successfully edited: " + paramsSeats);
+										System.out.println("Successfully edited: " + recordId + "");
 										managerClient.displayFlights(managerClient.getFlights());
 									} else
 									{
-										System.out.println("Failed to edit: " + paramsSeats);
+										System.out.println("Failed to edit: " + recordId + "");
 									}
 									break;
 								case 2:
 									System.out.println("Which Date? Enter as an integer i.e. 1000");
 									int dateEditForRecord = keyboard.nextInt();
-									FlightParameterValues paramsDate = new FlightParameterValues(null, new Date(dateEditForRecord), 0, 0, 0);
-									FlightModificationOperation flightModificationOperationDate = new FlightModificationOperation(FlightParameter.DATE, FlightClassEnum.FIRST);
-									boolean resultDate = managerClient.editFlightRecord(recordId,
-											FlightDbOperation.EDIT, flightModificationOperationDate, paramsDate);
+									boolean resultDate = managerClient.editFlightRecord(recordId, FlightDbOperation.EDIT, FlightParameter.DATE, new Date(dateEditForRecord));
 									if (resultDate)
 									{
-										System.out.println("Successfully edit: " + paramsDate);
+										System.out.println("Successfully edited: " + recordId + "");
 										managerClient.displayFlights(managerClient.getFlights());
 									} else
 									{
-										System.out.println("Failed to edit: " + paramsDate);
+										System.out.println("Failed to edit: " + recordId + "");
 									}
 									break;
 								case 3:
@@ -273,17 +253,14 @@ public class ClientProgram3
 										destinationEdit = new City("NewDelhi", "NDL");
 										break;
 									}
-									FlightParameterValues paramsFlightClass = new FlightParameterValues(destinationEdit, new Date(), 0, 0, 0);
-									FlightModificationOperation flightModificationOperationDestination = new FlightModificationOperation(FlightParameter.DESTINATION, FlightClassEnum.FIRST);
-									boolean resultDestination = managerClient.editFlightRecord(recordId,
-											FlightDbOperation.EDIT, flightModificationOperationDestination, paramsFlightClass);
+									boolean resultDestination = managerClient.editFlightRecord(recordId, FlightDbOperation.EDIT, FlightParameter.DESTINATION, destinationEdit);
 									if (resultDestination)
 									{
-										System.out.println("Successfully edit: " + paramsFlightClass);
+										System.out.println("Successfully edit: " + recordId + "");
 										managerClient.displayFlights(managerClient.getFlights());
 									} else
 									{
-										System.out.println("Failed to edit: " + paramsFlightClass);
+										System.out.println("Failed to edit: " + recordId + "");
 									}
 									break;
 								}
@@ -292,10 +269,7 @@ public class ClientProgram3
 								managerClient.displayFlights(managerClient.getFlights());
 								System.out.println("Which record Id?");
 								int recordIdRemove = keyboard.nextInt();
-								FlightParameterValues paramsRemove = new FlightParameterValues();
-								FlightModificationOperation flightModificationOperationRemove = new FlightModificationOperation(FlightParameter.DESTINATION, FlightClassEnum.FIRST);
-								boolean resultRemove = managerClient.editFlightRecord(recordIdRemove,
-										FlightDbOperation.REMOVE, flightModificationOperationRemove, paramsRemove);
+								boolean resultRemove = managerClient.editFlightRecord(recordIdRemove, FlightDbOperation.REMOVE, FlightParameter.NONE, null);
 								if (resultRemove)
 								{
 									System.out.println("Successfully removed: " + recordIdRemove);

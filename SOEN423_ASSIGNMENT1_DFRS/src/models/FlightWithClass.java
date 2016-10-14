@@ -1,8 +1,11 @@
 package models;
 
+import java.io.Serializable;
+
 import enums.FlightClassEnum;
 
-public class FlightWithClass {
+public class FlightWithClass implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private Flight flight;
 	private FlightClassEnum flightClassEnum;
 	

@@ -116,13 +116,15 @@ public class FlightReservationServer implements IFlightReservationServer
 			{
 				result = this.passengerRecordDb.addRecord(passengerRecord);
 				if(result){
-					this.logger.log(this.cityAcronym, LogOperation.BOOK_FLIGHT.name(), passengerRecord.toString());
+					this.logger.log(this.cityAcronym, LogOperation.BOOK_FLIGHT.name(),"Booked " + flightClassEnum.name() + " class " + passengerRecord.toString());
 				}
 				return result;
 			} catch (Exception e)
 			{
 				this.logger.log(this.cityAcronym, LogOperation.BOOK_FLIGHT.name(), e.getMessage());
 			}
+		} else {
+			this.logger.log(this.cityAcronym, LogOperation.BOOK_FLIGHT.name(), "Could not acquire " + flightClassEnum.name() + " class seat on " + existingFlight);
 		}
 		return false;
 	}
@@ -137,7 +139,7 @@ public class FlightReservationServer implements IFlightReservationServer
 	public String getBookedFlightCount(FlightClassOperation flightClassOperation) throws RemoteException
 	{		
 		StringBuilder builder = new StringBuilder();
-		FlightClassEnum flightClass = flightClassOperation.getFlightClass();
+		FlightClassEnum flightClass = flightClassOperation.getFlightClassEnum();
 		String managerId = flightClassOperation.getManagerId();
 		try
 		{
@@ -287,6 +289,7 @@ public class FlightReservationServer implements IFlightReservationServer
 			}
 			this.logger.log(this.cityAcronym, LogOperation.EDIT_FLIGHT.name(), managerId + " : Date was edited for " + flight.toString());
 			this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name(), "Date was edited for " + flight.toString());
+			break;
 		case DESTINATION:
 			if(flight == null){
 				this.logger.log(this.cityAcronym, LogOperation.ILLEGAL_ARGUMENT_EXCEPTION.name(), managerId + " : An error occured, flight was null");
@@ -295,6 +298,7 @@ public class FlightReservationServer implements IFlightReservationServer
 			}
 			this.logger.log(this.cityAcronym, LogOperation.EDIT_FLIGHT.name(), managerId + " : Destination was edited for " + flight.toString());
 			this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name(), "Destination was edited for " + flight.toString());
+			break;
 		case ECONOMY_CLASS_SEATS:
 			if(flight == null){
 				this.logger.log(this.cityAcronym, LogOperation.ILLEGAL_ARGUMENT_EXCEPTION.name(), managerId + " : An error occured, flight was null");
@@ -315,6 +319,7 @@ public class FlightReservationServer implements IFlightReservationServer
 					flightClass.setAvailableSeats(0);
 				}
 			}
+			break;
 		case FIRST_CLASS_SEATS:
 			if(flight == null){
 				this.logger.log(this.cityAcronym, LogOperation.ILLEGAL_ARGUMENT_EXCEPTION.name(), managerId + " : An error occured, flight was null");
@@ -335,9 +340,11 @@ public class FlightReservationServer implements IFlightReservationServer
 					flightClass.setAvailableSeats(0);
 				}
 			}
+			break;
 		default:
 			this.logger.log(this.cityAcronym, LogOperation.UNKNOWN.name(), managerId + " : An error occured, flight was not edited");
-			this.logger.log(managerId, LogOperation.UNKNOWN.name(), "An error occured, was flight was not edited");		
+			this.logger.log(managerId, LogOperation.UNKNOWN.name(), "An error occured, was flight was not edited");
+			break;
 		}
 		
 		return flight != null;

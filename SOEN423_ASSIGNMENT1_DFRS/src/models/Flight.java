@@ -24,21 +24,6 @@ public class Flight implements Serializable {
 		this.businessClass = new FlightClass(FlightClassEnum.BUSINESS, businessClassSeats, businessClassSeats);
 		this.economyClass = new FlightClass(FlightClassEnum.ECONOMY, economyClassSeats, economyClassSeats);
 	}
-	
-	public Flight(FlightParameterValues flightParameterValues) {
-		super();
-		this.recordId = -1;
-		this.destination = flightParameterValues.getDestination();
-		this.date = flightParameterValues.getDate();
-		
-		FlightClassParameterValues firstClassValues = flightParameterValues.getFirstClass();
-		FlightClassParameterValues businessClassValues = flightParameterValues.getBusinessClass();
-		FlightClassParameterValues economyClassValues = flightParameterValues.getEconomyClass();
-		
-		this.firstClass = new FlightClass(FlightClassEnum.FIRST, firstClassValues.getSeats(), firstClassValues.getAvailableSeats());
-		this.businessClass = new FlightClass(FlightClassEnum.BUSINESS, businessClassValues.getSeats(), businessClassValues.getAvailableSeats());
-		this.economyClass = new FlightClass(FlightClassEnum.ECONOMY, economyClassValues.getSeats(), economyClassValues.getAvailableSeats());
-	}
 
 	public int getRecordId()
 	{
