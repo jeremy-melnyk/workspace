@@ -17,7 +17,7 @@ public class FlightRecordOperation implements Serializable
 		this.recordId = recordId;
 		this.flightDbOperation = flightDbOperation;
 	}
-	
+
 	public String getManagerId()
 	{
 		return managerId;
@@ -34,7 +34,7 @@ public class FlightRecordOperation implements Serializable
 	{
 		this.recordId = recordId;
 	}
-
+	
 	public FlightDbOperation getFlightDbOperation() {
 		return flightDbOperation;
 	}

@@ -10,11 +10,9 @@ import java.util.Set;
 import concurrent.ConcurrentObject;
 import enums.FlightClassEnum;
 import enums.FlightParameter;
+import models.City;
 import models.Flight;
 import models.FlightClass;
-import models.FlightClassParameterValues;
-import models.FlightModificationOperation;
-import models.FlightParameterValues;
 
 public class FlightDb extends ConcurrentObject implements IFlightDb
 {
@@ -102,57 +100,55 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 	}
 	
 	@Override
-	public Flight editFlight(int recordId, FlightModificationOperation flightModificationOperation, FlightParameterValues flightParameters)
+	public Flight editFlight(int recordId, FlightParameter flightParameter, Object newValue)
 	{
 		if (recordId < 0)
 		{
 			return null;
 		}
 		
-		if (flightParameters == null)
+		if (flightParameter == null)
 		{
 			return null;
 		}
 		
-		FlightParameter flightParameter = flightModificationOperation.getFlightParameter();
-		FlightClassEnum flightClassEnum = flightModificationOperation.getFlightClass();
-
+		if (newValue == null)
+		{
+			return null;
+		}
+		
 		requestWrite();
 		try {
 			Flight flight = this.flights.get(recordId);
 			if (flight == null) {
 				return null;
 			}
-			switch (flightParameter) {
+			FlightClass flightClass = null;
+			int seats = 0;
+			switch(flightParameter)
+			{
+			case BUSINESS_CLASS_SEATS:
+				seats = (int) newValue;
+				flightClass = flight.getBusinessClass();
+				flightClass.setSeats(seats);
+				break;
 			case DATE:
-				flight.setDate(flightParameters.getDate());
+				Date date = (Date) newValue;
+				flight.setDate(date);
 				break;
 			case DESTINATION:
-				flight.setDestination(flightParameters.getDestination());
+				City destination = (City) newValue;
+				flight.setDestination(destination);
 				break;
-			case SEATS:
-				FlightClass oldFlightClass = null;
-				FlightClassParameterValues newFlightClass = null;
-				switch (flightClassEnum) {
-				case FIRST:
-					oldFlightClass = flight.getFirstClass();
-					newFlightClass = flightParameters.getFirstClass();
-					oldFlightClass.setSeats(newFlightClass.getSeats());
-					break;
-				case BUSINESS:
-					oldFlightClass = flight.getBusinessClass();
-					newFlightClass = flightParameters.getBusinessClass();
-					oldFlightClass.setSeats(newFlightClass.getSeats());
-					break;
-				case ECONOMY:
-					oldFlightClass = flight.getEconomyClass();
-					newFlightClass = flightParameters.getEconomyClass();
-					oldFlightClass.setSeats(newFlightClass.getSeats());
-					break;
-				default:
-					break;
-
-				}
+			case ECONOMY_CLASS_SEATS:
+				seats = (int) newValue;
+				flightClass = flight.getEconomyClass();
+				flightClass.setSeats(seats);
+				break;
+			case FIRST_CLASS_SEATS:
+				seats = (int) newValue;
+				flightClass = flight.getFirstClass();
+				flightClass.setSeats(seats);
 				break;
 			default:
 				break;

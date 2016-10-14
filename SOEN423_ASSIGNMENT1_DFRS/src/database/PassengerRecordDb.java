@@ -270,7 +270,7 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 	}
 	
 	@Override
-	public List<PassengerRecord> removeRecords(int flightRecordId, int numOfRecords)
+	public List<PassengerRecord> removeRecords(int flightRecordId, FlightClassEnum flightClassEnum, int numOfRecords)
 	{
 		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
 		requestWrite();
@@ -284,7 +284,9 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 					HashMap.Entry<Integer,PassengerRecord> entry = iterator.next();
 					PassengerRecord record = entry.getValue();
 					Flight flight = record.getFlight();
-					if(numOfRecords > 0 && flight.getRecordId() == flightRecordId){
+					FlightClassEnum recordFlightClassEnum = record.getFlightClassEnum();
+					int recordflightRecordId = flight.getRecordId();
+					if(numOfRecords > 0 && flightRecordId == recordflightRecordId && recordFlightClassEnum.equals(flightClassEnum)){
 						--numOfRecords;
 						passengerRecords.add(record);		
 				    	iterator.remove();	

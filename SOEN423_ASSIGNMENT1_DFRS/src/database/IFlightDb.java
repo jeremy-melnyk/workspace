@@ -3,9 +3,8 @@ import java.util.Date;
 import java.util.List;
 
 import enums.FlightClassEnum;
+import enums.FlightParameter;
 import models.Flight;
-import models.FlightModificationOperation;
-import models.FlightParameterValues;
 
 public interface IFlightDb {
 	
@@ -14,7 +13,7 @@ public interface IFlightDb {
 	public boolean addFlight(Flight flight);
 	public Flight getFlight(int recordId);
 	public Flight removeFlight(int recordId);
-	public Flight editFlight(int recordId, FlightModificationOperation flightModificationOperation, FlightParameterValues flightParameters);
+	public Flight editFlight(int recordId, FlightParameter flightParameter, Object newValue);
 	
 	public boolean acquireSeat(int recordId, FlightClassEnum flightClassEnum);
 	public boolean releaseSeat(int recordId, FlightClassEnum flightClassEnum);

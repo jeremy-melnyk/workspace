@@ -16,8 +16,6 @@ import enums.FlightClassEnum;
 import enums.FlightParameter;
 import models.City;
 import models.Flight;
-import models.FlightModificationOperation;
-import models.FlightParameterValues;
 
 public class FlightDbTests
 {
@@ -93,16 +91,11 @@ public class FlightDbTests
 		Date newDate = new Date(1000);
 		City newDestination = new City("Washington", "WST");
 		
-		FlightParameterValues params = new FlightParameterValues(newDestination, newDate, 20, 30, 40);
-		FlightModificationOperation flightModificationOperationFirst = new FlightModificationOperation(FlightParameter.SEATS, FlightClassEnum.FIRST);
-		FlightModificationOperation flightModificationOperationBusiness = new FlightModificationOperation(FlightParameter.SEATS, FlightClassEnum.BUSINESS);
-		FlightModificationOperation flightModificationOperationEconomy = new FlightModificationOperation(FlightParameter.SEATS, FlightClassEnum.ECONOMY);
-		
-		this.flightDb.editFlight(0, flightModificationOperationFirst, params);
-		this.flightDb.editFlight(0, flightModificationOperationBusiness, params);
-		this.flightDb.editFlight(0, flightModificationOperationEconomy, params);
-		this.flightDb.editFlight(0, new FlightModificationOperation(FlightParameter.DATE, FlightClassEnum.ECONOMY), params);
-		this.flightDb.editFlight(0, new FlightModificationOperation(FlightParameter.DESTINATION, FlightClassEnum.ECONOMY), params);
+		this.flightDb.editFlight(0, FlightParameter.FIRST_CLASS_SEATS, 20);
+		this.flightDb.editFlight(0, FlightParameter.BUSINESS_CLASS_SEATS, 30);
+		this.flightDb.editFlight(0, FlightParameter.ECONOMY_CLASS_SEATS, 40);
+		this.flightDb.editFlight(0, FlightParameter.DESTINATION, newDestination);
+		this.flightDb.editFlight(0, FlightParameter.DATE, newDate);
 		
 		Flight retrievedFlight = this.flightDb.getFlight(0);
 		assertEquals(20, retrievedFlight.getFirstClass().getSeats());
@@ -118,22 +111,14 @@ public class FlightDbTests
 		Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), 2, 2, 3);
 		this.flightDb.addFlight(mtlFlight);
 		
-		Date newDate = new Date(1000);
-		City newDestination = new City("Washington", "WST");
-		
-		FlightParameterValues params = new FlightParameterValues(newDestination, newDate, 0, 1, 2);
-		FlightModificationOperation flightModificationOperationFirst = new FlightModificationOperation(FlightParameter.SEATS, FlightClassEnum.FIRST);
-		FlightModificationOperation flightModificationOperationBusiness = new FlightModificationOperation(FlightParameter.SEATS, FlightClassEnum.BUSINESS);
-		FlightModificationOperation flightModificationOperationEconomy = new FlightModificationOperation(FlightParameter.SEATS, FlightClassEnum.ECONOMY);
-		
 		mtlFlight.getFirstClass().acquireSeat();
 		mtlFlight.getFirstClass().acquireSeat();
 		mtlFlight.getBusinessClass().acquireSeat();
 		mtlFlight.getEconomyClass().acquireSeat();
 		
-		this.flightDb.editFlight(0, flightModificationOperationFirst, params);
-		this.flightDb.editFlight(0, flightModificationOperationBusiness, params);
-		this.flightDb.editFlight(0, flightModificationOperationEconomy, params);
+		this.flightDb.editFlight(0, FlightParameter.FIRST_CLASS_SEATS, 0);
+		this.flightDb.editFlight(0, FlightParameter.BUSINESS_CLASS_SEATS, 1);
+		this.flightDb.editFlight(0, FlightParameter.ECONOMY_CLASS_SEATS, 2);
 		
 		Flight retrievedFlight = this.flightDb.getFlight(0);
 		assertEquals(0, retrievedFlight.getFirstClass().getSeats());
