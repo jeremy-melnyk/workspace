@@ -11,6 +11,9 @@ import concurrent.ConcurrentObject;
 import enums.FlightClassEnum;
 import enums.FlightParameter;
 import models.Flight;
+import models.FlightClass;
+import models.FlightClassParameterValues;
+import models.FlightModificationOperation;
 import models.FlightParameterValues;
 
 public class FlightDb extends ConcurrentObject implements IFlightDb
@@ -34,34 +37,6 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 		} finally{
 			releaseRead();	
 		} 
-		return count;
-	}
-
-	@Override
-	public int numberOfFlights(FlightClassEnum flightClass)
-	{
-		if (flightClass == null)
-		{
-			throw new IllegalArgumentException();
-		}
-
-		int count = 0;
-		requestRead();
-		try
-		{
-			Set<Integer> keys = this.flights.keySet();
-			for (Integer key : keys)
-			{
-				Flight flight = this.flights.get(key);
-				if (flight.getFlightClass() == flightClass)
-				{
-					++count;
-				}
-			}
-		} finally
-		{
-			releaseRead();
-		}
 		return count;
 	}
 
@@ -127,7 +102,7 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 	}
 	
 	@Override
-	public Flight editFlight(int recordId, FlightParameter flightParameter, FlightParameterValues flightParameters)
+	public Flight editFlight(int recordId, FlightModificationOperation flightModificationOperation, FlightParameterValues flightParameters)
 	{
 		if (recordId < 0)
 		{
@@ -139,32 +114,51 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 			return null;
 		}
 		
+		FlightParameter flightParameter = flightModificationOperation.getFlightParameter();
+		FlightClassEnum flightClassEnum = flightModificationOperation.getFlightClass();
+
 		requestWrite();
-		try
-		{
+		try {
 			Flight flight = this.flights.get(recordId);
-			if(flight == null){
+			if (flight == null) {
 				return null;
 			}
-			switch(flightParameter){
+			switch (flightParameter) {
 			case DATE:
 				flight.setDate(flightParameters.getDate());
 				break;
 			case DESTINATION:
 				flight.setDestination(flightParameters.getDestination());
 				break;
-			case FLIGHTCLASS:
-				flight.setFlightClass(flightParameters.getFlightClass());
-				break;
 			case SEATS:
-				flight.setSeats(flightParameters.getSeats());
+				FlightClass oldFlightClass = null;
+				FlightClassParameterValues newFlightClass = null;
+				switch (flightClassEnum) {
+				case FIRST:
+					oldFlightClass = flight.getFirstClass();
+					newFlightClass = flightParameters.getFirstClass();
+					oldFlightClass.setSeats(newFlightClass.getSeats());
+					break;
+				case BUSINESS:
+					oldFlightClass = flight.getBusinessClass();
+					newFlightClass = flightParameters.getBusinessClass();
+					oldFlightClass.setSeats(newFlightClass.getSeats());
+					break;
+				case ECONOMY:
+					oldFlightClass = flight.getEconomyClass();
+					newFlightClass = flightParameters.getEconomyClass();
+					oldFlightClass.setSeats(newFlightClass.getSeats());
+					break;
+				default:
+					break;
+
+				}
 				break;
 			default:
-				break;		
+				break;
 			}
 			return flight;
-		} finally
-		{
+		} finally {
 			releaseWrite();
 		}
 	}
@@ -195,35 +189,7 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 			for (Integer key : keys)
 			{
 				Flight flight = this.flights.get(key);
-				if (flight.getAvailableSeats() > 0)
-				{
-					flights.add(flight);
-				}
-			}
-		} finally
-		{
-			releaseRead();
-		}
-		return flights;
-	}
-
-	@Override
-	public List<Flight> getFlights(FlightClassEnum flightClass)
-	{
-		if (flightClass == null)
-		{
-			throw new IllegalArgumentException();
-		}
-		
-		ArrayList<Flight> flights = new ArrayList<Flight>();
-		requestRead();
-		try
-		{
-			Set<Integer> keys = this.flights.keySet();
-			for (Integer key : keys)
-			{
-				Flight flight = this.flights.get(key);
-				if (flight.getFlightClass().equals(flightClass))
+				if (flight.getFirstClass().getAvailableSeats() > 0 || flight.getBusinessClass().getAvailableSeats() > 0 || flight.getEconomyClass().getAvailableSeats() > 0)
 				{
 					flights.add(flight);
 				}
@@ -285,29 +251,6 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 	}
 
 	@Override
-	public List<Flight> removeFlights(FlightClassEnum flightClass)
-	{
-		ArrayList<Flight> flights = new ArrayList<Flight>();
-		requestWrite();
-		try
-		{
-			Iterator<HashMap.Entry<Integer,Flight>> iterator = this.flights.entrySet().iterator();
-			while (iterator.hasNext()) {
-				HashMap.Entry<Integer,Flight> entry = iterator.next();
-				Flight flight = entry.getValue();
-			    if(flight.getFlightClass().equals(flightClass)){
-					flights.add(flight);	
-			    	iterator.remove();
-			    }
-			}
-		} finally
-		{
-			releaseWrite();
-		}
-		return flights;
-	}
-
-	@Override
 	public List<Flight> removeFlights(Date date)
 	{
 		ArrayList<Flight> flights = new ArrayList<Flight>();
@@ -331,7 +274,7 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 	}
 
 	@Override
-	public boolean acquireSeat(int recordId)
+	public boolean acquireSeat(int recordId, FlightClassEnum flightClassEnum)
 	{
 		if (recordId < 0)
 		{
@@ -342,7 +285,17 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 		try
 		{
 			Flight flight = this.flights.get(recordId);
-			return flight.acquireSeat();
+			switch(flightClassEnum)
+			{
+			case FIRST:
+				return flight.getFirstClass().acquireSeat();
+			case BUSINESS:
+				return flight.getBusinessClass().acquireSeat();
+			case ECONOMY:
+				return flight.getEconomyClass().acquireSeat();
+			default:
+				return false;			
+			}
 		} finally
 		{
 			releaseWrite();
@@ -350,7 +303,7 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 	}
 
 	@Override
-	public boolean releaseSeat(int recordId)
+	public boolean releaseSeat(int recordId, FlightClassEnum flightClassEnum)
 	{
 		if (recordId < 0)
 		{
@@ -361,7 +314,17 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 		try
 		{
 			Flight flight = this.flights.get(recordId);
-			return flight.releaseSeat();
+			switch(flightClassEnum)
+			{
+			case FIRST:
+				return flight.getFirstClass().releaseSeat();
+			case BUSINESS:
+				return flight.getBusinessClass().releaseSeat();
+			case ECONOMY:
+				return flight.getEconomyClass().releaseSeat();
+			default:
+				return false;			
+			}
 		} finally
 		{
 			releaseWrite();

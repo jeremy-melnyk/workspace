@@ -4,14 +4,14 @@ import java.io.Serializable;
 
 import enums.FlightDbOperation;
 
-public class RecordOperation implements Serializable
+public class FlightRecordOperation implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 	private String managerId;
 	private int recordId;
 	private FlightDbOperation flightDbOperation;
 	
-	public RecordOperation(String managerId, int recordId, FlightDbOperation flightDbOperation) {
+	public FlightRecordOperation(String managerId, int recordId, FlightDbOperation flightDbOperation) {
 		super();
 		this.managerId = managerId;
 		this.recordId = recordId;

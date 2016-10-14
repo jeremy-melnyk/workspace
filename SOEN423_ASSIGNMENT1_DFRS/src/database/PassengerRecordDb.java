@@ -42,7 +42,7 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 	}
 
 	@Override
-	public int numberOfRecords(FlightClassEnum flightClass)
+	public int numberOfRecords(FlightClassEnum flightClassEnum)
 	{
 		int count = 0;
 		requestRead();
@@ -55,8 +55,8 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 				for (Integer innerKey : innerKeys)
 				{
 					PassengerRecord record = innerRecords.get(innerKey);
-					Flight flight = record.getFlight();
-					if(flight.getFlightClass().equals(flightClass)){
+					FlightClassEnum recordFlightClassEnum = record.getFlightClassEnum();
+					if(recordFlightClassEnum.equals(flightClassEnum)){
 						++count;
 					}
 				}
@@ -176,7 +176,7 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 	}
 	
 	@Override
-	public List<PassengerRecord> getRecords(FlightClassEnum flightClass)
+	public List<PassengerRecord> getRecords(FlightClassEnum flightClassEnum)
 	{
 		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
 		requestRead();
@@ -189,8 +189,8 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 				for (Integer innerKey : innerKeys)
 				{
 					PassengerRecord record = innerRecords.get(innerKey);
-					Flight flight = record.getFlight();
-					if(flight.getFlightClass().equals(flightClass)){
+					FlightClassEnum recordFlightClassEnum = record.getFlightClassEnum();
+					if(recordFlightClassEnum.equals(flightClassEnum)){
 						passengerRecords.add(record);
 					}
 				}
@@ -243,7 +243,7 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 	}
 
 	@Override
-	public List<PassengerRecord> removeRecords(FlightClassEnum flightClass)
+	public List<PassengerRecord> removeRecords(FlightClassEnum flightClassEnum)
 	{
 		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
 		requestWrite();
@@ -256,10 +256,10 @@ public class PassengerRecordDb extends ConcurrentObject implements IPassengerRec
 				while (iterator.hasNext()) {
 					HashMap.Entry<Integer,PassengerRecord> entry = iterator.next();
 					PassengerRecord record = entry.getValue();
-					Flight flight = record.getFlight();
-					if(flight.getFlightClass().equals(flightClass)){
-						passengerRecords.add(record);		
-				    	iterator.remove();	
+					FlightClassEnum recordFlightClassEnum = record.getFlightClassEnum();
+					if(recordFlightClassEnum.equals(flightClassEnum)){
+						passengerRecords.add(record);
+						iterator.remove();
 					}
 				}
 			}

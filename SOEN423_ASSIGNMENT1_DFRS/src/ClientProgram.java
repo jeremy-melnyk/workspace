@@ -12,6 +12,7 @@ import enums.FlightParameter;
 import models.Address;
 import models.City;
 import models.Flight;
+import models.FlightModificationOperation;
 import models.FlightParameterValues;
 
 public class ClientProgram
@@ -27,13 +28,12 @@ public class ClientProgram
 			managerClient.login("MTL" + mtlId++);
 			Thread tM = new Thread(() -> {
 				for(int j = 0; j < 20; ++j){
-					FlightParameterValues editedFlight = new FlightParameterValues();
-					editedFlight.setSeats(j);
+					FlightParameterValues editedFlight = new FlightParameterValues(null, null, 10, 10, 10);
 					City newCity = new City("Washington", "WST");
-					FlightParameterValues newFlight = new FlightParameterValues(FlightClassEnum.BUSINESS, newCity, new Date(), 10);
-					managerClient.editFlightRecord(j, FlightDbOperation.ADD, FlightParameter.NONE, newFlight);
-					managerClient.editFlightRecord(j, FlightDbOperation.EDIT, FlightParameter.SEATS, editedFlight);
-					managerClient.editFlightRecord(j/2, FlightDbOperation.REMOVE, FlightParameter.NONE, editedFlight);
+					FlightParameterValues newFlight = new FlightParameterValues(newCity, new Date(), 10, 10, 10);
+					managerClient.editFlightRecord(j, FlightDbOperation.ADD, new FlightModificationOperation(FlightParameter.NONE, FlightClassEnum.FIRST), newFlight);
+					managerClient.editFlightRecord(j, FlightDbOperation.EDIT, new FlightModificationOperation(FlightParameter.SEATS, FlightClassEnum.FIRST), editedFlight);
+					managerClient.editFlightRecord(j/2, FlightDbOperation.REMOVE, new FlightModificationOperation(FlightParameter.NONE, FlightClassEnum.FIRST), editedFlight);
 					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.FIRST));
 					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.BUSINESS));
 					System.out.println(managerClient.getBookedFlightCount(FlightClassEnum.ECONOMY));

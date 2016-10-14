@@ -4,19 +4,20 @@ import java.util.List;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import enums.FlightParameter;
 import models.Address;
 import models.Flight;
 import models.FlightClassOperation;
+import models.FlightModificationOperation;
 import models.FlightParameterValues;
 import models.FlightServerAddress;
-import models.RecordOperation;
+import models.FlightWithClass;
+import models.FlightRecordOperation;
 
 public interface IFlightReservationServer extends Remote
 {	
-	public boolean bookFlight(String firstName, String lastName, Address address, String phoneNumber, Flight flight) throws RemoteException;
+	public boolean bookFlight(String firstName, String lastName, Address address, String phoneNumber, FlightWithClass flightWithClass) throws RemoteException;
 	public String getBookedFlightCount(FlightClassOperation flightClassOperation) throws RemoteException;
-	public boolean editFlightRecord(RecordOperation recordOperation, FlightParameter flightParameter, FlightParameterValues flightParameterValues) throws RemoteException;
+	public boolean editFlightRecord(FlightRecordOperation recordOperation, FlightModificationOperation flightModificationOperation, FlightParameterValues flightParameterValues) throws RemoteException;
 	
 	public List<Flight> getFlights() throws RemoteException;
 	public List<Flight> getAvailableFlights() throws RemoteException;

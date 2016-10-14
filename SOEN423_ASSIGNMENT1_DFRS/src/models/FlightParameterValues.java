@@ -14,7 +14,11 @@ public class FlightParameterValues implements Serializable {
 	private FlightClassParameterValues businessClass;
 	private FlightClassParameterValues economyClass;
 
-	public FlightParameterValues(City destination, Date date, int firstClassSeats, int economyClassSeats, int businessClassSeats) {
+	public FlightParameterValues() {
+		super();
+	}
+	
+	public FlightParameterValues(City destination, Date date, int firstClassSeats, int businessClassSeats, int economyClassSeats) {
 		super();
 		this.destination = destination;
 		this.date = date;

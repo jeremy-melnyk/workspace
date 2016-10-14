@@ -15,7 +15,7 @@ public class Flight implements Serializable {
 	private FlightClass businessClass;
 	private FlightClass economyClass;
 
-	public Flight(City destination, Date date, int firstClassSeats, int economyClassSeats, int businessClassSeats) {
+	public Flight(City destination, Date date, int firstClassSeats, int businessClassSeats, int economyClassSeats) {
 		super();
 		this.recordId = -1;
 		this.destination = destination;
@@ -150,6 +150,5 @@ public class Flight implements Serializable {
 	public String toString() {
 		return "Flight [recordId=" + recordId + ", destination=" + destination + ", date=" + date + ", firstClass="
 				+ firstClass + ", businessClass=" + businessClass + ", economyClass=" + economyClass + "]";
-	}
-	
+	}	
 }

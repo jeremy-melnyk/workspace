@@ -1,25 +1,28 @@
 package models;
 
+import java.io.Serializable;
+
 import enums.FlightClassEnum;
 
-public class FlightClass {
-	private FlightClassEnum flightClass;
+public class FlightClass implements Serializable {
+	private static final long serialVersionUID = 1L;
+	private FlightClassEnum flightClassEnum;
 	private int seats;
 	private int availableSeats;
 	
-	public FlightClass(FlightClassEnum flightClass, int seats, int availableSeats) {
+	public FlightClass(FlightClassEnum flightClassEnum, int seats, int availableSeats) {
 		super();
-		this.flightClass = flightClass;
+		this.flightClassEnum = flightClassEnum;
 		this.seats = seats;
 		this.availableSeats = availableSeats;
 	}
 
-	public FlightClassEnum getFlightClass() {
-		return flightClass;
+	public FlightClassEnum getFlightClassEnum() {
+		return flightClassEnum;
 	}
 
-	public void setFlightClass(FlightClassEnum flightClass) {
-		this.flightClass = flightClass;
+	public void setFlightClassEnum(FlightClassEnum flightClassEnum) {
+		this.flightClassEnum = flightClassEnum;
 	}
 
 	public int getSeats() {
@@ -70,7 +73,7 @@ public class FlightClass {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + availableSeats;
-		result = prime * result + ((flightClass == null) ? 0 : flightClass.hashCode());
+		result = prime * result + ((flightClassEnum == null) ? 0 : flightClassEnum.hashCode());
 		result = prime * result + seats;
 		return result;
 	}
@@ -86,7 +89,7 @@ public class FlightClass {
 		FlightClass other = (FlightClass) obj;
 		if (availableSeats != other.availableSeats)
 			return false;
-		if (flightClass != other.flightClass)
+		if (flightClassEnum != other.flightClassEnum)
 			return false;
 		if (seats != other.seats)
 			return false;
@@ -95,8 +98,7 @@ public class FlightClass {
 
 	@Override
 	public String toString() {
-		return "FlightClass [flightClass=" + flightClass + ", seats=" + seats + ", availableSeats=" + availableSeats
-				+ "]";
+		return "FlightClass [flightClassEnum=" + flightClassEnum + ", seats=" + seats + ", availableSeats="
+				+ availableSeats + "]";
 	}
-	
 }
