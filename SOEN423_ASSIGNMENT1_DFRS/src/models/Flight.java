@@ -3,10 +3,11 @@ package models;
 import java.io.Serializable;
 import java.util.Date;
 
+import concurrent.ConcurrentObject;
 import enums.FlightClassEnum;
 
-public class Flight implements Serializable {
-	
+public class Flight extends ConcurrentObject implements Serializable {
+
 	private static final long serialVersionUID = 1L;
 	private int recordId;
 	private City destination;
@@ -25,34 +26,58 @@ public class Flight implements Serializable {
 		this.economyClass = new FlightClass(FlightClassEnum.ECONOMY, economyClassSeats, economyClassSeats);
 	}
 
-	public int getRecordId()
-	{
-		return recordId;
-	}
-	
-	public void setRecordId(int recordId)
-	{
-		this.recordId = recordId;
-	}
-
-	public City getDestination()
-	{
-		return destination;
+	public int getRecordId() {
+		requestRead();
+		try {
+			return recordId;
+		} finally {
+			releaseRead();
+		}
 	}
 
-	public void setDestination(City destination)
-	{
-		this.destination = destination;
-	}
-	
-	public Date getDate()
-	{
-		return date;
+	public void setRecordId(int recordId) {
+		requestWrite();
+		try {
+			this.recordId = recordId;
+		} finally {
+			releaseWrite();
+		}
 	}
 
-	public void setDate(Date date)
-	{
-		this.date = date;
+	public City getDestination() {
+		requestRead();
+		try {
+			return destination;
+		} finally {
+			releaseRead();
+		}
+	}
+
+	public void setDestination(City destination) {
+		requestWrite();
+		try {
+			this.destination = destination;
+		} finally {
+			releaseWrite();
+		}
+	}
+
+	public Date getDate() {
+		requestRead();
+		try {
+			return date;
+		} finally {
+			releaseRead();
+		}
+	}
+
+	public void setDate(Date date) {
+		requestWrite();
+		try {
+			this.date = date;
+		} finally {
+			releaseWrite();
+		}
 	}
 
 	public FlightClass getFirstClass() {
@@ -135,5 +160,5 @@ public class Flight implements Serializable {
 	public String toString() {
 		return "Flight [recordId=" + recordId + ", destination=" + destination + ", date=" + date + ", firstClass="
 				+ firstClass + ", businessClass=" + businessClass + ", economyClass=" + economyClass + "]";
-	}	
+	}
 }

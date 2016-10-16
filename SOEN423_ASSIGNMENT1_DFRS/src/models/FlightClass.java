@@ -2,14 +2,15 @@ package models;
 
 import java.io.Serializable;
 
+import concurrent.ConcurrentObject;
 import enums.FlightClassEnum;
 
-public class FlightClass implements Serializable {
+public class FlightClass extends ConcurrentObject implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private FlightClassEnum flightClassEnum;
 	private int seats;
 	private int availableSeats;
-	
+
 	public FlightClass(FlightClassEnum flightClassEnum, int seats, int availableSeats) {
 		super();
 		this.flightClassEnum = flightClassEnum;
@@ -18,54 +19,94 @@ public class FlightClass implements Serializable {
 	}
 
 	public FlightClassEnum getFlightClassEnum() {
-		return flightClassEnum;
+		requestRead();
+		try {
+			return flightClassEnum;
+		} finally {
+			releaseRead();
+		}
 	}
 
 	public void setFlightClassEnum(FlightClassEnum flightClassEnum) {
-		this.flightClassEnum = flightClassEnum;
+		requestWrite();
+		try {
+			this.flightClassEnum = flightClassEnum;
+		} finally {
+			releaseWrite();
+		}
 	}
 
 	public int getSeats() {
-		return seats;
+		requestRead();
+		try {
+			return seats;
+		} finally {
+			releaseRead();
+		}
 	}
 
 	public void setSeats(int seats) {
-		if(seats < 0){
-			seats = 0;
+		requestWrite();
+		try {
+			if (seats < 0) {
+				seats = 0;
+			}
+
+			if (seats > this.seats) {
+				int numOfNewSeats = seats - this.seats;
+				availableSeats += numOfNewSeats;
+			} else if (seats < this.seats) {
+				int numOfReducedSeats = this.seats - seats;
+				availableSeats -= numOfReducedSeats;
+			}
+			this.seats = seats;
+		} finally {
+			releaseWrite();
 		}
-		
-		if(seats > this.seats){
-			int numOfNewSeats = seats - this.seats;
-			availableSeats += numOfNewSeats;
-		} else if (seats < this.seats){
-			int numOfReducedSeats = this.seats - seats;
-			availableSeats -= numOfReducedSeats;
-		}
-		this.seats = seats;
 	}
 
 	public int getAvailableSeats() {
-		return availableSeats;
+		requestRead();
+		try {
+			return availableSeats;
+		} finally {
+			releaseRead();
+		}
 	}
 
 	public void setAvailableSeats(int availableSeats) {
-		this.availableSeats = availableSeats;
-	}
-	
-	public boolean acquireSeat(){
-		if (this.availableSeats > 0){
-			--this.availableSeats;
-			return true;
+		requestWrite();
+		try {
+			this.availableSeats = availableSeats;
+		} finally {
+			releaseWrite();
 		}
-		return false;
 	}
-	
-	public boolean releaseSeat(){
-		if (this.availableSeats < this.seats){
-			++this.availableSeats;
-			return true;
+
+	public boolean acquireSeat() {
+		requestWrite();
+		try {
+			if (this.availableSeats > 0) {
+				--this.availableSeats;
+				return true;
+			}
+			return false;
+		} finally {
+			releaseWrite();
 		}
-		return false;
+	}
+
+	public boolean releaseSeat() {
+		requestWrite();
+		try {
+			if (this.availableSeats < this.seats) {
+				++this.availableSeats;
+				return true;
+			}
+			return false;
+		} finally {
+			releaseWrite();
+		}
 	}
 
 	@Override
