@@ -11,7 +11,7 @@ import models.Address;
 import models.City;
 import models.Flight;
 
-public class ClientProgram3
+public class ConsoleProgram
 {
 	public static void main(String[] args)
 	{

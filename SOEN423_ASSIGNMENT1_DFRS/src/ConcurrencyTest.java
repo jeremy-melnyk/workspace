@@ -13,7 +13,7 @@ import models.Address;
 import models.City;
 import models.Flight;
 
-public class ClientProgram
+public class ConcurrencyTest
 {
 	public static void main(String[] args)
 	{
