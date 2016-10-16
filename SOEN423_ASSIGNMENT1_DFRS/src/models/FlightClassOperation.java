@@ -2,37 +2,32 @@ package models;
 
 import java.io.Serializable;
 
-import enums.FlightClass;
+import enums.FlightClassEnum;
 
-public class FlightClassOperation implements Serializable
-{
+public class FlightClassOperation implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String managerId;
-	private FlightClass flightClass;
-
-	public FlightClassOperation(String managerId, FlightClass flightClass) {
+	private FlightClassEnum flightClassEnum;
+	
+	public FlightClassOperation(String managerId, FlightClassEnum flightClassEnum) {
 		super();
 		this.managerId = managerId;
-		this.flightClass = flightClass;
+		this.flightClassEnum = flightClassEnum;
 	}
 
-	public String getManagerId()
-	{
+	public String getManagerId() {
 		return managerId;
 	}
 
-	public void setManagerId(String managerId)
-	{
+	public void setManagerId(String managerId) {
 		this.managerId = managerId;
 	}
 
-	public FlightClass getFlightClass()
-	{
-		return flightClass;
+	public FlightClassEnum getFlightClassEnum() {
+		return flightClassEnum;
 	}
 
-	public void setFlightClass(FlightClass flightClass)
-	{
-		this.flightClass = flightClass;
-	};
+	public void setFlightClassEnum(FlightClassEnum flightClassEnum) {
+		this.flightClassEnum = flightClassEnum;
+	}
 }

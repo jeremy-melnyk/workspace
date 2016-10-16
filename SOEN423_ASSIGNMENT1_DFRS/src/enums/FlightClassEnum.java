@@ -1,6 +1,6 @@
 package enums;
 
-public enum FlightClass
+public enum FlightClassEnum
 {
 	FIRST, BUSINESS, ECONOMY;
 
@@ -20,7 +20,7 @@ public enum FlightClass
 		}
 	}
 	
-	public static FlightClass toFlightClass(String string){
+	public static FlightClassEnum toFlightClass(String string){
 		switch (string)
 		{
 		case "FIRST":

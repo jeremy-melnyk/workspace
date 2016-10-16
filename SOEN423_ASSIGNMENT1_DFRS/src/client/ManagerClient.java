@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import enums.FlightDbOperation;
 import enums.FlightParameter;
 import enums.LogOperation;
@@ -15,8 +15,7 @@ import log.ILogger;
 import log.TextFileLog;
 import models.Flight;
 import models.FlightClassOperation;
-import models.FlightParameterValues;
-import models.RecordOperation;
+import models.FlightRecordOperation;
 import server.IFlightReservationServer;
 
 public class ManagerClient extends Client
@@ -59,7 +58,7 @@ public class ManagerClient extends Client
 		this.managerId = null;
 	}
 	
-	public String getBookedFlightCount(FlightClass flightClass)
+	public String getBookedFlightCount(FlightClassEnum flightClass)
 	{
 		if(this.managerId == null){
 			System.out.println("No manager is logged in");
@@ -77,7 +76,7 @@ public class ManagerClient extends Client
 		}
 	}
 	
-	public boolean editFlightRecord(int recordId, FlightDbOperation operation, FlightParameter flightParameter, FlightParameterValues flightParameters){
+	public boolean editFlightRecord(int recordId, FlightDbOperation operation, FlightParameter flightParameter, Object newValue){
 		if(managerId == null){
 			this.logger.log(managerId, LogOperation.BAD_LOGIN.name(), "No ManagerId was set.");
 			return false;
@@ -88,8 +87,8 @@ public class ManagerClient extends Client
 			return false;
 		}
 		
-		if(flightParameters == null){
-			this.logger.log(managerId, LogOperation.ILLEGAL_ARGUMENT_EXCEPTION.name(), "No FlightParameters were set.");
+		if(flightParameter == null){
+			this.logger.log(managerId, LogOperation.ILLEGAL_ARGUMENT_EXCEPTION.name(), "No FlightParameter was set.");
 			return false;
 		}
 		
@@ -97,15 +96,16 @@ public class ManagerClient extends Client
 		{
 			String cityAcronym = this.managerId.substring(0, 3);
 			IFlightReservationServer flightReservationServer = ServerLocator.locateServer(this.baseUrl + cityAcronym);
-			RecordOperation recordOperation = new RecordOperation(this.managerId, recordId, operation);
+			FlightRecordOperation recordOperation = new FlightRecordOperation(this.managerId, recordId, operation);
 			switch(operation){
 			case ADD:
 				try{
-					boolean result = flightReservationServer.editFlightRecord(recordOperation, flightParameter, flightParameters);
+					Flight flight = (Flight) newValue;
+					boolean result = flightReservationServer.editFlightRecord(recordOperation, flightParameter, flight);
 					if(result){
-						this.logger.log(managerId, LogOperation.ADD_FLIGHT.name() + " [SUCCESS]", flightParameters.toString());	
+						this.logger.log(managerId, LogOperation.ADD_FLIGHT.name() + " [SUCCESS]", flight.toString());	
 					} else {
-						this.logger.log(managerId, LogOperation.ADD_FLIGHT.name() + " [FAIL]", flightParameters.toString());	
+						this.logger.log(managerId, LogOperation.ADD_FLIGHT.name() + " [FAIL]", flight.toString());	
 					}
 					return result;
 				}catch(RemoteException e){
@@ -113,11 +113,11 @@ public class ManagerClient extends Client
 				}
 			case EDIT:
 				try{
-					boolean result = flightReservationServer.editFlightRecord(recordOperation, flightParameter, flightParameters);
+					boolean result = flightReservationServer.editFlightRecord(recordOperation, flightParameter, newValue);
 					if(result){
-						this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name() + " [SUCCESS]", recordOperation.getRecordId() + " : " + flightParameters.toString());	
+						this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name() + " [SUCCESS]", recordOperation.getRecordId() + "");	
 					} else {
-						this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name() + " [FAIL]", recordOperation.getRecordId() + " : " + flightParameters.toString());	
+						this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name() + " [FAIL]", recordOperation.getRecordId() + "");	
 					}
 					return result;
 				}catch(RemoteException e){
@@ -125,11 +125,11 @@ public class ManagerClient extends Client
 				}
 			case REMOVE:
 				try{
-					boolean result = flightReservationServer.editFlightRecord(recordOperation, flightParameter, flightParameters);
+					boolean result = flightReservationServer.editFlightRecord(recordOperation, flightParameter, newValue);
 					if(result){
-						this.logger.log(managerId, LogOperation.REMOVE_FLIGHT.name() + " [SUCCESS]", recordOperation.getRecordId() + " : " + flightParameters.toString());	
+						this.logger.log(managerId, LogOperation.REMOVE_FLIGHT.name() + " [SUCCESS]", recordOperation.getRecordId() + "");	
 					} else {
-						this.logger.log(managerId, LogOperation.REMOVE_FLIGHT.name() + " [FAIL]", recordOperation.getRecordId() + " : " + flightParameters.toString());	
+						this.logger.log(managerId, LogOperation.REMOVE_FLIGHT.name() + " [FAIL]", recordOperation.getRecordId() + "");	
 					}
 					return result;
 				}catch(RemoteException e){

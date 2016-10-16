@@ -5,8 +5,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import enums.FlightClassEnum;
 import models.Address;
 import models.Flight;
+import models.FlightWithClass;
 import server.IFlightReservationServer;
 
 public class PassengerClient extends Client
@@ -15,12 +17,13 @@ public class PassengerClient extends Client
 		super(baseUrl);
 	}
 	
-	public boolean bookFlight(String firstName, String lastName, Address address, String phoneNumber, Flight flight)
+	public boolean bookFlight(String firstName, String lastName, Address address, String phoneNumber, Flight flight, FlightClassEnum flightClassEnum)
 	{
+		FlightWithClass flightWithClass = new FlightWithClass(flight, flightClassEnum);
 		try
 		{
 			IFlightReservationServer flightReservationServer = ServerLocator.locateServer(this.baseUrl);
-			return flightReservationServer.bookFlight(firstName, lastName, address, phoneNumber, flight);
+			return flightReservationServer.bookFlight(firstName, lastName, address, phoneNumber, flightWithClass);
 		} catch (Exception e)
 		{
 			System.out.println(e.getMessage());

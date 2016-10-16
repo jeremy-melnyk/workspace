@@ -12,11 +12,10 @@ import org.junit.Test;
 
 import database.FlightDb;
 import database.IFlightDb;
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import enums.FlightParameter;
 import models.City;
 import models.Flight;
-import models.FlightParameterValues;
 
 public class FlightDbTests
 {
@@ -43,9 +42,9 @@ public class FlightDbTests
 	public void testNumberOfFlights()
 	{
 		for(int i = 0; i < 10; ++i){
-			Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), i);
-			Flight wstFlight = new Flight(FlightClass.ECONOMY, new City("Washington", "WST"), new Date(), i);
-			Flight ndlFlight = new Flight(FlightClass.BUSINESS, new City("NewDelhi", "NDL"), new Date(), i);
+			Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), i, i+1, i+2);
+			Flight wstFlight = new Flight(new City("Washington", "WST"), new Date(), i, i+1, i+2);
+			Flight ndlFlight = new Flight(new City("NewDelhi", "NDL"), new Date(), i, i+1, i+2);
 			this.flightDb.addFlight(mtlFlight);
 			this.flightDb.addFlight(wstFlight);
 			this.flightDb.addFlight(ndlFlight);
@@ -56,25 +55,9 @@ public class FlightDbTests
 	}
 
 	@Test
-	public void testNumberOfFlightsFlightClass()
-	{
-		for(int i = 0; i < 10; ++i){
-			Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), i);
-			Flight wstFlight = new Flight(FlightClass.ECONOMY, new City("Washington", "WST"), new Date(), i);
-			Flight ndlFlight = new Flight(FlightClass.BUSINESS, new City("NewDelhi", "NDL"), new Date(), i);
-			this.flightDb.addFlight(mtlFlight);
-			this.flightDb.addFlight(wstFlight);
-			this.flightDb.addFlight(ndlFlight);
-		}
-		int numOfFlights = this.flightDb.numberOfFlights(FlightClass.FIRST);
-		int expectedNumOfFlights = 10;
-		assertEquals(expectedNumOfFlights, numOfFlights);
-	}
-
-	@Test
 	public void testAddFlight()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), 10, 20, 30);
 		boolean result = this.flightDb.addFlight(mtlFlight);
 		assertTrue(result);
 	}
@@ -82,7 +65,7 @@ public class FlightDbTests
 	@Test
 	public void testGetFlight()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), 10, 20, 30);
 		this.flightDb.addFlight(mtlFlight);
 		Flight retrievedFlight = this.flightDb.getFlight(0);
 		assertEquals(mtlFlight, retrievedFlight);
@@ -91,7 +74,7 @@ public class FlightDbTests
 	@Test
 	public void testRemoveFlight()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), 10, 20, 30);
 		this.flightDb.addFlight(mtlFlight);
 		Flight removedFlight = this.flightDb.removeFlight(0);
 		Flight retrievedFlight = this.flightDb.getFlight(0);
@@ -102,63 +85,48 @@ public class FlightDbTests
 	@Test
 	public void testEditFlight()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 10);
+		Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), 10, 20, 30);
 		this.flightDb.addFlight(mtlFlight);
 		
-		int newSeats = 5;
 		Date newDate = new Date(1000);
-		FlightClass newFlightClass = FlightClass.BUSINESS;
 		City newDestination = new City("Washington", "WST");
 		
-		FlightParameterValues params = new FlightParameterValues();
-		params.setSeats(newSeats);
-		params.setDate(newDate);
-		params.setFlightClass(newFlightClass);
-		params.setDestination(newDestination);
-		
-		this.flightDb.editFlight(0, FlightParameter.SEATS, params);
-		this.flightDb.editFlight(0, FlightParameter.DATE, params);
-		this.flightDb.editFlight(0, FlightParameter.FLIGHTCLASS, params);
-		this.flightDb.editFlight(0, FlightParameter.DESTINATION, params);
+		this.flightDb.editFlight(0, FlightParameter.FIRST_CLASS_SEATS, 20);
+		this.flightDb.editFlight(0, FlightParameter.BUSINESS_CLASS_SEATS, 30);
+		this.flightDb.editFlight(0, FlightParameter.ECONOMY_CLASS_SEATS, 40);
+		this.flightDb.editFlight(0, FlightParameter.DESTINATION, newDestination);
+		this.flightDb.editFlight(0, FlightParameter.DATE, newDate);
 		
 		Flight retrievedFlight = this.flightDb.getFlight(0);
-		assertEquals(newSeats, retrievedFlight.getSeats());
+		assertEquals(20, retrievedFlight.getFirstClass().getSeats());
+		assertEquals(30, retrievedFlight.getBusinessClass().getSeats());
+		assertEquals(40, retrievedFlight.getEconomyClass().getSeats());
 		assertEquals(newDate, retrievedFlight.getDate());
-		assertEquals(newFlightClass, retrievedFlight.getFlightClass());
 		assertEquals(newDestination, retrievedFlight.getDestination());
 	}
 	
 	@Test
 	public void testNegativeSeats()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 2);
+		Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), 2, 2, 3);
 		this.flightDb.addFlight(mtlFlight);
 		
-		int newSeats = -5;
-		Date newDate = new Date(1000);
-		FlightClass newFlightClass = FlightClass.BUSINESS;
-		City newDestination = new City("Washington", "WST");
+		mtlFlight.getFirstClass().acquireSeat();
+		mtlFlight.getFirstClass().acquireSeat();
+		mtlFlight.getBusinessClass().acquireSeat();
+		mtlFlight.getEconomyClass().acquireSeat();
 		
-		FlightParameterValues params = new FlightParameterValues();
-		params.setSeats(newSeats);
-		params.setDate(newDate);
-		params.setFlightClass(newFlightClass);
-		params.setDestination(newDestination);
-		
-		mtlFlight.acquireSeat();
-		mtlFlight.acquireSeat();
-		
-		this.flightDb.editFlight(0, FlightParameter.SEATS, params);
-		this.flightDb.editFlight(0, FlightParameter.DATE, params);
-		this.flightDb.editFlight(0, FlightParameter.FLIGHTCLASS, params);
-		this.flightDb.editFlight(0, FlightParameter.DESTINATION, params);
+		this.flightDb.editFlight(0, FlightParameter.FIRST_CLASS_SEATS, 0);
+		this.flightDb.editFlight(0, FlightParameter.BUSINESS_CLASS_SEATS, 1);
+		this.flightDb.editFlight(0, FlightParameter.ECONOMY_CLASS_SEATS, 2);
 		
 		Flight retrievedFlight = this.flightDb.getFlight(0);
-		assertEquals(0, retrievedFlight.getSeats());
-		assertEquals(-2, retrievedFlight.getAvailableSeats());
-		assertEquals(newDate, retrievedFlight.getDate());
-		assertEquals(newFlightClass, retrievedFlight.getFlightClass());
-		assertEquals(newDestination, retrievedFlight.getDestination());
+		assertEquals(0, retrievedFlight.getFirstClass().getSeats());
+		assertEquals(-2, retrievedFlight.getFirstClass().getAvailableSeats());
+		assertEquals(1, retrievedFlight.getBusinessClass().getSeats());
+		assertEquals(0, retrievedFlight.getBusinessClass().getAvailableSeats());
+		assertEquals(2, retrievedFlight.getEconomyClass().getSeats());
+		assertEquals(1, retrievedFlight.getEconomyClass().getAvailableSeats());
 	}
 
 	@Test
@@ -166,9 +134,9 @@ public class FlightDbTests
 	{
 		List<Flight> flights = new ArrayList<Flight>();
 		for(int i = 0; i < 10; ++i){
-			Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), i);
-			Flight wstFlight = new Flight(FlightClass.ECONOMY, new City("Washington", "WST"), new Date(), i);
-			Flight ndlFlight = new Flight(FlightClass.BUSINESS, new City("NewDelhi", "NDL"), new Date(), i);
+			Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), i, i+1, i+2);
+			Flight wstFlight = new Flight(new City("Washington", "WST"), new Date(), i, i+1, i+2);
+			Flight ndlFlight = new Flight(new City("NewDelhi", "NDL"), new Date(), i, i+1, i+2);
 			this.flightDb.addFlight(mtlFlight);
 			this.flightDb.addFlight(wstFlight);
 			this.flightDb.addFlight(ndlFlight);
@@ -185,9 +153,9 @@ public class FlightDbTests
 	{
 		List<Flight> availableFlights = new ArrayList<Flight>();
 		for(int i = 1; i <= 10; ++i){
-			Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 0);
-			Flight wstFlight = new Flight(FlightClass.ECONOMY, new City("Washington", "WST"), new Date(), i);
-			Flight ndlFlight = new Flight(FlightClass.BUSINESS, new City("NewDelhi", "NDL"), new Date(), i);
+			Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), 0, 0, 0);
+			Flight wstFlight = new Flight(new City("Washington", "WST"), new Date(), 0, 0, i+2);
+			Flight ndlFlight = new Flight(new City("NewDelhi", "NDL"), new Date(), i, i+1, i+2);
 			this.flightDb.addFlight(mtlFlight);
 			this.flightDb.addFlight(wstFlight);
 			this.flightDb.addFlight(ndlFlight);
@@ -199,31 +167,14 @@ public class FlightDbTests
 	}
 
 	@Test
-	public void testGetFlightsFlightClass()
-	{
-		List<Flight> flights = new ArrayList<Flight>();
-		for(int i = 0; i < 10; ++i){
-			Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), i);
-			Flight wstFlight = new Flight(FlightClass.ECONOMY, new City("Washington", "WST"), new Date(), i);
-			Flight ndlFlight = new Flight(FlightClass.BUSINESS, new City("NewDelhi", "NDL"), new Date(), i);
-			this.flightDb.addFlight(mtlFlight);
-			this.flightDb.addFlight(wstFlight);
-			this.flightDb.addFlight(ndlFlight);
-			flights.add(ndlFlight);
-		}
-		List<Flight> retrievedFlights = this.flightDb.getFlights(FlightClass.BUSINESS);
-		assertArrayEquals(flights.toArray(), retrievedFlights.toArray());
-	}
-
-	@Test
 	public void testGetFlightsDate()
 	{
 		Date date = new Date(1000);
 		List<Flight> flights = new ArrayList<Flight>();
 		for(int i = 0; i < 10; ++i){
-			Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), date, i);
-			Flight wstFlight = new Flight(FlightClass.ECONOMY, new City("Washington", "WST"), new Date(), i);
-			Flight ndlFlight = new Flight(FlightClass.BUSINESS, new City("NewDelhi", "NDL"), new Date(), i);
+			Flight mtlFlight = new Flight(new City("Montreal", "MTL"), date, i, i+1, i+2);
+			Flight wstFlight = new Flight(new City("Washington", "WST"), new Date(), i, i+1, i+2);
+			Flight ndlFlight = new Flight(new City("NewDelhi", "NDL"), new Date(), i, i+1, i+2);
 			this.flightDb.addFlight(mtlFlight);
 			this.flightDb.addFlight(wstFlight);
 			this.flightDb.addFlight(ndlFlight);
@@ -238,9 +189,9 @@ public class FlightDbTests
 	{
 		List<Flight> flights = new ArrayList<Flight>();
 		for(int i = 0; i < 10; ++i){
-			Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), i);
-			Flight wstFlight = new Flight(FlightClass.ECONOMY, new City("Washington", "WST"), new Date(), i);
-			Flight ndlFlight = new Flight(FlightClass.BUSINESS, new City("NewDelhi", "NDL"), new Date(), i);
+			Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), i, i+1, i+2);
+			Flight wstFlight = new Flight(new City("Washington", "WST"), new Date(), i, i+1, i+2);
+			Flight ndlFlight = new Flight(new City("NewDelhi", "NDL"), new Date(), i, i+1, i+2);
 			this.flightDb.addFlight(mtlFlight);
 			this.flightDb.addFlight(wstFlight);
 			this.flightDb.addFlight(ndlFlight);
@@ -254,38 +205,20 @@ public class FlightDbTests
 	}
 
 	@Test
-	public void testRemoveFlightsFlightClass()
-	{
-		List<Flight> flights = new ArrayList<Flight>();
-		for(int i = 0; i < 10; ++i){
-			Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), i);
-			Flight wstFlight = new Flight(FlightClass.ECONOMY, new City("Washington", "WST"), new Date(), i);
-			Flight ndlFlight = new Flight(FlightClass.BUSINESS, new City("NewDelhi", "NDL"), new Date(), i);
-			this.flightDb.addFlight(mtlFlight);
-			this.flightDb.addFlight(wstFlight);
-			this.flightDb.addFlight(ndlFlight);
-			flights.add(mtlFlight);
-		}
-		List<Flight> retrievedFlights = this.flightDb.removeFlights(FlightClass.FIRST);
-		assertArrayEquals(flights.toArray(), retrievedFlights.toArray());
-		assertEquals(20, this.flightDb.numberOfFlights());
-	}
-
-	@Test
 	public void testRemoveFlightsDate()
 	{
 		Date date = new Date(1000);
 		List<Flight> flights = new ArrayList<Flight>();
 		for(int i = 0; i < 10; ++i){
-			Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), date, i);
-			Flight wstFlight = new Flight(FlightClass.ECONOMY, new City("Washington", "WST"), new Date(), i);
-			Flight ndlFlight = new Flight(FlightClass.BUSINESS, new City("NewDelhi", "NDL"), new Date(), i);
+			Flight mtlFlight = new Flight(new City("Montreal", "MTL"), date, i, i+1, i+2);
+			Flight wstFlight = new Flight(new City("Washington", "WST"), new Date(), i, i+1, i+2);
+			Flight ndlFlight = new Flight(new City("NewDelhi", "NDL"), new Date(), i, i+1, i+2);
 			this.flightDb.addFlight(mtlFlight);
 			this.flightDb.addFlight(wstFlight);
 			this.flightDb.addFlight(ndlFlight);
 			flights.add(mtlFlight);
 		}
-		List<Flight> retrievedFlights = this.flightDb.removeFlights(FlightClass.FIRST);
+		List<Flight> retrievedFlights = this.flightDb.removeFlights(date);
 		assertArrayEquals(flights.toArray(), retrievedFlights.toArray());
 		assertEquals(20, this.flightDb.numberOfFlights());
 	}
@@ -293,38 +226,40 @@ public class FlightDbTests
 	@Test
 	public void testAcquireSeat()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 0);
-		Flight wstFlight = new Flight(FlightClass.ECONOMY, new City("Washington", "WST"), new Date(), 1);
-		Flight ndlFlight = new Flight(FlightClass.BUSINESS, new City("NewDelhi", "NDL"), new Date(), 5);
+		Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), 0, 0, 0);
+		Flight wstFlight = new Flight(new City("Washington", "WST"), new Date(), 0, 1, 0);
+		Flight ndlFlight = new Flight(new City("NewDelhi", "NDL"), new Date(), 0, 0, 5);
 		this.flightDb.addFlight(mtlFlight);
 		this.flightDb.addFlight(wstFlight);
 		this.flightDb.addFlight(ndlFlight);
-		assertFalse(this.flightDb.acquireSeat(0));
-		assertTrue(this.flightDb.acquireSeat(1));
-		assertTrue(this.flightDb.acquireSeat(2));
-		assertEquals(0, mtlFlight.getAvailableSeats());
-		assertEquals(0, wstFlight.getAvailableSeats());
-		assertEquals(4, ndlFlight.getAvailableSeats());
+		assertFalse(this.flightDb.acquireSeat(0, FlightClassEnum.FIRST));
+		assertTrue(this.flightDb.acquireSeat(1, FlightClassEnum.BUSINESS));
+		assertTrue(this.flightDb.acquireSeat(2, FlightClassEnum.ECONOMY));
+		assertEquals(0, mtlFlight.getFirstClass().getAvailableSeats());
+		assertEquals(0, wstFlight.getBusinessClass().getAvailableSeats());
+		assertEquals(4, ndlFlight.getEconomyClass().getAvailableSeats());
 	}
 
 	@Test
 	public void testReleaseSeat()
 	{
-		Flight mtlFlight = new Flight(FlightClass.FIRST, new City("Montreal", "MTL"), new Date(), 0);
-		Flight wstFlight = new Flight(FlightClass.ECONOMY, new City("Washington", "WST"), new Date(), 1);
-		Flight ndlFlight = new Flight(FlightClass.BUSINESS, new City("NewDelhi", "NDL"), new Date(), 5);
+		Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), 0, 0, 0);
+		Flight wstFlight = new Flight(new City("Washington", "WST"), new Date(), 0, 1, 0);
+		Flight ndlFlight = new Flight(new City("NewDelhi", "NDL"), new Date(), 0, 0, 5);
 		this.flightDb.addFlight(mtlFlight);
 		this.flightDb.addFlight(wstFlight);
 		this.flightDb.addFlight(ndlFlight);
-		assertFalse(this.flightDb.acquireSeat(0));
-		assertTrue(this.flightDb.acquireSeat(1));
-		assertTrue(this.flightDb.acquireSeat(2));
-		assertFalse(this.flightDb.releaseSeat(0));
-		assertTrue(this.flightDb.releaseSeat(1));
-		assertTrue(this.flightDb.releaseSeat(2));
-		assertEquals(0, mtlFlight.getAvailableSeats());
-		assertEquals(1, wstFlight.getAvailableSeats());
-		assertEquals(5, ndlFlight.getAvailableSeats());
+		assertFalse(this.flightDb.acquireSeat(0, FlightClassEnum.FIRST));
+		assertTrue(this.flightDb.acquireSeat(1, FlightClassEnum.BUSINESS));
+		assertTrue(this.flightDb.acquireSeat(2, FlightClassEnum.ECONOMY));
+		assertEquals(0, mtlFlight.getFirstClass().getAvailableSeats());
+		assertEquals(0, wstFlight.getBusinessClass().getAvailableSeats());
+		assertEquals(4, ndlFlight.getEconomyClass().getAvailableSeats());
+		assertFalse(this.flightDb.releaseSeat(0, FlightClassEnum.FIRST));
+		assertTrue(this.flightDb.releaseSeat(1, FlightClassEnum.BUSINESS));
+		assertTrue(this.flightDb.releaseSeat(2, FlightClassEnum.ECONOMY));
+		assertEquals(1, wstFlight.getBusinessClass().getAvailableSeats());
+		assertEquals(5, ndlFlight.getEconomyClass().getAvailableSeats());
 	}
 
 }

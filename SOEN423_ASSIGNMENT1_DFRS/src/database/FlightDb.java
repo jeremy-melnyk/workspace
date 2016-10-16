@@ -1,68 +1,36 @@
 package database;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-import concurrent.ConcurrentObject;
-import enums.FlightClass;
+import enums.FlightClassEnum;
 import enums.FlightParameter;
+import models.City;
 import models.Flight;
-import models.FlightParameterValues;
+import models.FlightClass;
 
-public class FlightDb extends ConcurrentObject implements IFlightDb
+public class FlightDb implements IFlightDb
 {
+	private Object recordCountLock = new Object();
 	private int RECORD_ID;
-	private HashMap<Integer, Flight> flights;
+	private ConcurrentHashMap<Integer, Flight> flights;
 	
 	public FlightDb() {
 		super();
 		this.RECORD_ID = 0;
-		this.flights = new HashMap<Integer, Flight>();
+		this.flights = new ConcurrentHashMap<Integer, Flight>();
 	}
 
 	@Override
 	public int numberOfFlights()
 	{
-		int count = 0;
-		requestRead();
-		try{
-			count = this.flights.size();
-		} finally{
-			releaseRead();	
-		} 
-		return count;
-	}
-
-	@Override
-	public int numberOfFlights(FlightClass flightClass)
-	{
-		if (flightClass == null)
-		{
-			throw new IllegalArgumentException();
-		}
-
-		int count = 0;
-		requestRead();
-		try
-		{
-			Set<Integer> keys = this.flights.keySet();
-			for (Integer key : keys)
-			{
-				Flight flight = this.flights.get(key);
-				if (flight.getFlightClass() == flightClass)
-				{
-					++count;
-				}
-			}
-		} finally
-		{
-			releaseRead();
-		}
-		return count;
+		return this.flights.size();
 	}
 
 	@Override
@@ -72,22 +40,17 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 		{
 			throw new IllegalArgumentException();
 		}
-
-		requestWrite();
-		try
+		
+		int recordId = -1;
+		
+		synchronized(recordCountLock)
 		{
-			if (!this.flights.containsValue(flight))
-			{
-				int recordId = this.RECORD_ID++;
-				flight.setRecordId(recordId);
-				this.flights.put(recordId, flight);
-				return true;
-			}
-			return false;
-		} finally
-		{
-			releaseWrite();
+			recordId = RECORD_ID++;
 		}
+		
+		flight.setRecordId(recordId);
+		this.flights.put(recordId, flight);
+		return true;
 	}
 
 	@Override
@@ -98,14 +61,7 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 			return null;
 		}
 
-		requestRead();
-		try
-		{
-			return this.flights.get(recordId);
-		} finally
-		{
-			releaseRead();
-		}
+		return this.flights.get(recordId);
 	}
 
 	@Override
@@ -116,122 +72,96 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 			return null;
 		}
 
-		requestWrite();
-		try
-		{
-			return this.flights.remove(recordId);
-		} finally
-		{
-			releaseWrite();
-		}
+		return this.flights.remove(recordId);
 	}
 	
 	@Override
-	public Flight editFlight(int recordId, FlightParameter flightParameter, FlightParameterValues flightParameters)
+	public Flight editFlight(int recordId, FlightParameter flightParameter, Object newValue)
 	{
 		if (recordId < 0)
 		{
 			return null;
 		}
 		
-		if (flightParameters == null)
+		if (flightParameter == null)
 		{
 			return null;
 		}
 		
-		requestWrite();
-		try
+		if (newValue == null)
 		{
-			Flight flight = this.flights.get(recordId);
-			if(flight == null){
-				return null;
-			}
-			switch(flightParameter){
-			case DATE:
-				flight.setDate(flightParameters.getDate());
-				break;
-			case DESTINATION:
-				flight.setDestination(flightParameters.getDestination());
-				break;
-			case FLIGHTCLASS:
-				flight.setFlightClass(flightParameters.getFlightClass());
-				break;
-			case SEATS:
-				flight.setSeats(flightParameters.getSeats());
-				break;
-			default:
-				break;		
-			}
-			return flight;
-		} finally
-		{
-			releaseWrite();
+			return null;
 		}
+		
+		
+		Flight flight = this.flights.get(recordId);	
+		if (flight == null) {
+			return null;
+		}
+		
+		FlightClass flightClass = null;
+		int seats = 0;
+		switch (flightParameter) {
+		case BUSINESS_CLASS_SEATS:
+			seats = (int) newValue;
+			flightClass = flight.getBusinessClass();
+			flightClass.setSeats(seats);
+			break;
+		case DATE:
+			Date date = (Date) newValue;
+			flight.setDate(date);
+			break;
+		case DESTINATION:
+			City destination = (City) newValue;
+			flight.setDestination(destination);
+			break;
+		case ECONOMY_CLASS_SEATS:
+			seats = (int) newValue;
+			flightClass = flight.getEconomyClass();
+			flightClass.setSeats(seats);
+			break;
+		case FIRST_CLASS_SEATS:
+			seats = (int) newValue;
+			flightClass = flight.getFirstClass();
+			flightClass.setSeats(seats);
+			break;
+		default:
+			break;
+		}
+		return flight;
 	}
 
 	@Override
 	public List<Flight> getFlights()
 	{
-		ArrayList<Flight> flights = null;
-		requestRead();
-		try
-		{
-			flights = new ArrayList<Flight>(this.flights.values());
-		} finally
-		{
-			releaseRead();
-		}
-		return flights;
+		Collection<Flight> flightCollection = this.flights.values();
+		return new ArrayList<Flight>(flightCollection);
 	}
 	
 	@Override
 	public List<Flight> getAvailableFlights()
 	{
 		ArrayList<Flight> flights = new ArrayList<Flight>();
-		requestRead();
-		try
+		Set<Integer> keys = this.flights.keySet();	
+		for (Integer key : keys)
 		{
-			Set<Integer> keys = this.flights.keySet();
-			for (Integer key : keys)
+			Flight flight = this.flights.get(key);
+			
+			boolean flightIsAvailable = false;
+			FlightClass firstClass = flight.getFirstClass();
+			FlightClass businessClass = flight.getBusinessClass();
+			FlightClass economyClass = flight.getEconomyClass();
+			
+			flightIsAvailable |= firstClass.getAvailableSeats() > 0;
+			flightIsAvailable |= businessClass.getAvailableSeats() > 0;
+			flightIsAvailable |= economyClass.getAvailableSeats() > 0;
+			
+			if(flightIsAvailable)
 			{
-				Flight flight = this.flights.get(key);
-				if (flight.getAvailableSeats() > 0)
-				{
-					flights.add(flight);
-				}
+				flights.add(flight);	
 			}
-		} finally
-		{
-			releaseRead();
-		}
-		return flights;
-	}
-
-	@Override
-	public List<Flight> getFlights(FlightClass flightClass)
-	{
-		if (flightClass == null)
-		{
-			throw new IllegalArgumentException();
 		}
 		
-		ArrayList<Flight> flights = new ArrayList<Flight>();
-		requestRead();
-		try
-		{
-			Set<Integer> keys = this.flights.keySet();
-			for (Integer key : keys)
-			{
-				Flight flight = this.flights.get(key);
-				if (flight.getFlightClass().equals(flightClass))
-				{
-					flights.add(flight);
-				}
-			}
-		} finally
-		{
-			releaseRead();
-		}
 		return flights;
 	}
 
@@ -244,22 +174,18 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 		}
 		
 		ArrayList<Flight> flights = new ArrayList<Flight>();
-		requestRead();
-		try
+		Set<Integer> keys = this.flights.keySet();
+		
+		for (Integer key : keys)
 		{
-			Set<Integer> keys = this.flights.keySet();
-			for (Integer key : keys)
+			Flight flight = this.flights.get(key);
+			Date flightDate = flight.getDate();
+			if (flightDate.equals(date))
 			{
-				Flight flight = this.flights.get(key);
-				if (flight.getDate().equals(date))
-				{
-					flights.add(flight);
-				}
+				flights.add(flight);
 			}
-		} finally
-		{
-			releaseRead();
 		}
+		
 		return flights;
 	}
 
@@ -267,43 +193,15 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 	public List<Flight> removeFlights()
 	{
 		ArrayList<Flight> flights = new ArrayList<Flight>();
-		requestWrite();
-		try
-		{
-			Iterator<HashMap.Entry<Integer,Flight>> iterator = this.flights.entrySet().iterator();
-			while (iterator.hasNext()) {
-				HashMap.Entry<Integer,Flight> entry = iterator.next();
-				Flight flight = entry.getValue();
-				flights.add(flight);	
-		    	iterator.remove();
-			}
-		} finally
-		{
-			releaseWrite();
+		Iterator<HashMap.Entry<Integer,Flight>> iterator = this.flights.entrySet().iterator();
+		
+		while (iterator.hasNext()) {
+			HashMap.Entry<Integer,Flight> entry = iterator.next();
+			Flight flight = entry.getValue();
+			flights.add(flight);
+	    	iterator.remove();
 		}
-		return flights;
-	}
-
-	@Override
-	public List<Flight> removeFlights(FlightClass flightClass)
-	{
-		ArrayList<Flight> flights = new ArrayList<Flight>();
-		requestWrite();
-		try
-		{
-			Iterator<HashMap.Entry<Integer,Flight>> iterator = this.flights.entrySet().iterator();
-			while (iterator.hasNext()) {
-				HashMap.Entry<Integer,Flight> entry = iterator.next();
-				Flight flight = entry.getValue();
-			    if(flight.getFlightClass().equals(flightClass)){
-					flights.add(flight);	
-			    	iterator.remove();
-			    }
-			}
-		} finally
-		{
-			releaseWrite();
-		}
+		
 		return flights;
 	}
 
@@ -311,60 +209,85 @@ public class FlightDb extends ConcurrentObject implements IFlightDb
 	public List<Flight> removeFlights(Date date)
 	{
 		ArrayList<Flight> flights = new ArrayList<Flight>();
-		requestWrite();
-		try
-		{
-			Iterator<HashMap.Entry<Integer,Flight>> iterator = this.flights.entrySet().iterator();
-			while (iterator.hasNext()) {
-				HashMap.Entry<Integer,Flight> entry = iterator.next();
-				Flight flight = entry.getValue();
-			    if(flight.getDate().equals(date)){
-					flights.add(flight);	
-			    	iterator.remove();
-			    }
-			}
-		} finally
-		{
-			releaseWrite();
+		Iterator<HashMap.Entry<Integer,Flight>> iterator = this.flights.entrySet().iterator();
+		
+		while (iterator.hasNext()) {
+			HashMap.Entry<Integer,Flight> entry = iterator.next();
+			Flight flight = entry.getValue();
+		    if(flight.getDate().equals(date)){
+				flights.add(flight);	
+				iterator.remove();	
+		    }
 		}
+		
 		return flights;
 	}
 
 	@Override
-	public boolean acquireSeat(int recordId)
+	public boolean acquireSeat(int recordId, FlightClassEnum flightClassEnum)
 	{
 		if (recordId < 0)
 		{
 			return false;
 		}
 
-		requestWrite();
-		try
+		Flight flight = this.flights.get(recordId);
+		if (flight == null) {
+			return false;
+		}
+		
+		boolean result = false;
+		FlightClass flightClass = null;
+		switch(flightClassEnum)
 		{
-			Flight flight = this.flights.get(recordId);
-			return flight.acquireSeat();
-		} finally
-		{
-			releaseWrite();
+		case FIRST:
+			flightClass = flight.getFirstClass();
+			result = flightClass.acquireSeat();
+			return result;
+		case BUSINESS:
+			flightClass = flight.getBusinessClass();
+			result = flightClass.acquireSeat();
+			return result;
+		case ECONOMY:
+			flightClass = flight.getEconomyClass();
+			result = flightClass.acquireSeat();
+			return result;
+		default:
+			return false;			
 		}
 	}
 
 	@Override
-	public boolean releaseSeat(int recordId)
+	public boolean releaseSeat(int recordId, FlightClassEnum flightClassEnum)
 	{
 		if (recordId < 0)
 		{
 			return false;
 		}
 
-		requestWrite();
-		try
+		Flight flight = this.flights.get(recordId);
+		if (flight == null) {
+			return false;
+		}
+		
+		boolean result = false;
+		FlightClass flightClass = null;
+		switch(flightClassEnum)
 		{
-			Flight flight = this.flights.get(recordId);
-			return flight.releaseSeat();
-		} finally
-		{
-			releaseWrite();
+		case FIRST:
+			flightClass = flight.getFirstClass();
+			result = flightClass.releaseSeat();
+			return result;
+		case BUSINESS:
+			flightClass = flight.getBusinessClass();
+			result = flightClass.releaseSeat();
+			return result;
+		case ECONOMY:
+			flightClass = flight.getEconomyClass();
+			result = flightClass.releaseSeat();
+			return result;
+		default:
+			return false;			
 		}
 	}
 }
