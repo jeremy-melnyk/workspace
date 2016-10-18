@@ -1,0 +1,5 @@
+package enums;
+
+public enum FlightParameter {
+	FIRST_CLASS_SEATS, BUSINESS_CLASS_SEATS, ECONOMY_CLASS_SEATS, DESTINATION, DATE, NONE;
+}
