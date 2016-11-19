@@ -88,14 +88,14 @@ public class FlightDbTests
 		Flight mtlFlight = new Flight(new City("Montreal", "MTL"), new Date(), 10, 20, 30);
 		this.flightDb.addFlight(mtlFlight);
 		
-		Date newDate = new Date(1000);
+		Date newDate = new Date("15-Jun-2013");
 		City newDestination = new City("Washington", "WST");
 		
-		this.flightDb.editFlight(0, FlightParameter.FIRST_CLASS_SEATS, 20);
-		this.flightDb.editFlight(0, FlightParameter.BUSINESS_CLASS_SEATS, 30);
-		this.flightDb.editFlight(0, FlightParameter.ECONOMY_CLASS_SEATS, 40);
-		this.flightDb.editFlight(0, FlightParameter.DESTINATION, newDestination);
-		this.flightDb.editFlight(0, FlightParameter.DATE, newDate);
+		this.flightDb.editFlight(0, FlightParameter.FIRST_CLASS_SEATS, "20");
+		this.flightDb.editFlight(0, FlightParameter.BUSINESS_CLASS_SEATS, "30");
+		this.flightDb.editFlight(0, FlightParameter.ECONOMY_CLASS_SEATS, "40");
+		this.flightDb.editFlight(0, FlightParameter.DESTINATION, "Washington-WST");
+		this.flightDb.editFlight(0, FlightParameter.DATE, "15-Jun-2013");
 		
 		Flight retrievedFlight = this.flightDb.getFlight(0);
 		assertEquals(20, retrievedFlight.getFirstClass().getSeats());
@@ -116,9 +116,9 @@ public class FlightDbTests
 		mtlFlight.getBusinessClass().acquireSeat();
 		mtlFlight.getEconomyClass().acquireSeat();
 		
-		this.flightDb.editFlight(0, FlightParameter.FIRST_CLASS_SEATS, 0);
-		this.flightDb.editFlight(0, FlightParameter.BUSINESS_CLASS_SEATS, 1);
-		this.flightDb.editFlight(0, FlightParameter.ECONOMY_CLASS_SEATS, 2);
+		this.flightDb.editFlight(0, FlightParameter.FIRST_CLASS_SEATS,"0");
+		this.flightDb.editFlight(0, FlightParameter.BUSINESS_CLASS_SEATS, "1");
+		this.flightDb.editFlight(0, FlightParameter.ECONOMY_CLASS_SEATS, "2");
 		
 		Flight retrievedFlight = this.flightDb.getFlight(0);
 		assertEquals(0, retrievedFlight.getFirstClass().getSeats());

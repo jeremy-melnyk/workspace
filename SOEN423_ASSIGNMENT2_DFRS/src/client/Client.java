@@ -1,25 +1,35 @@
 package client;
 
+import org.omg.CORBA.ORB;
+
 public abstract class Client
 {
-	protected String baseUrl;
+	protected ORB orb;
+	protected String serverAcronym;
 
-	public Client(String baseUrl) {
+	public Client(ORB orb, String serverAcronym) {
 		super();
-		if (baseUrl == null)
+		if (orb == null)
 		{
 			throw new IllegalArgumentException();
 		}
-		this.baseUrl = baseUrl;
+		this.orb = orb;
+		this.serverAcronym = serverAcronym;
 	}
 
-	public String getBaseUrl()
-	{
-		return baseUrl;
+	public ORB getOrb() {
+		return orb;
 	}
 
-	public void setBaseUrl(String baseUrl)
-	{
-		this.baseUrl = baseUrl;
+	public void setOrb(ORB orb) {
+		this.orb = orb;
+	}
+
+	public String getServerAcronym() {
+		return serverAcronym;
+	}
+
+	public void setServerAcronym(String serverAcronym) {
+		this.serverAcronym = serverAcronym;
 	}
 }

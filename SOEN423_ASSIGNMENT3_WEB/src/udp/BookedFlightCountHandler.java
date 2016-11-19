@@ -12,19 +12,19 @@ import enums.FlightClass;
 
 public class BookedFlightCountHandler extends RequestHandler {
 
-	public BookedFlightCountHandler(InetAddress address, int port, String requestData, DatagramSocket socket,
+	public BookedFlightCountHandler(InetAddress address, int port, Request request, DatagramSocket socket,
 			DatabaseRepository databaseRepository) {
-		super(address, port, requestData, socket, databaseRepository);
+		super(address, port, request, socket, databaseRepository);
 	}
 
 	@Override
 	public void execute() {
 		try {
-			FlightClass flightClass = FlightClass.valueOf(requestData);
+			BookedFlightCountRequest bookedFlightCountRequest = (BookedFlightCountRequest) request;
+			FlightClass flightClass = bookedFlightCountRequest.getFlightClass();
 			FlightReservationDb flightReservationDb = databaseRepository.getFlightReservationDb();
 			int bookedFlightCount = flightReservationDb.getFlightReservationCount(flightClass);
-			String bookedFlightCountAsString = Integer.toString(bookedFlightCount);
-			byte[] message = bookedFlightCountAsString.getBytes();
+	        byte[] message = UdpHelper.intToByteArray(bookedFlightCount);
 			DatagramPacket reply = new DatagramPacket(message, message.length, address, port);
 			socket.send(reply);
 		} catch (SocketException e) {

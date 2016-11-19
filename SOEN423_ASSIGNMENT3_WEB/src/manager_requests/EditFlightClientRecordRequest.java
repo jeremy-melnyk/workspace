@@ -2,21 +2,21 @@ package manager_requests;
 
 import enums.EditType;
 
-public class EditFlightRecordRequest {
+public class EditFlightClientRecordRequest {
 	private final String DELIMITER = "|";
 	private final String DELIMITER_ESCAPE = "\\" + DELIMITER;
 	private String managerId;
 	private EditType editType;
 	private Integer flightRecordId;
 
-	public EditFlightRecordRequest(String managerId, EditType editType, Integer flightRecordId) {
+	public EditFlightClientRecordRequest(String managerId, EditType editType, Integer flightRecordId) {
 		super();
 		this.managerId = managerId;
 		this.editType = editType;
 		this.flightRecordId = flightRecordId;
 	}
 	
-	public EditFlightRecordRequest(String editFlightRecordRequest) {
+	public EditFlightClientRecordRequest(String editFlightRecordRequest) {
 		super();
 		String tokens[] = editFlightRecordRequest.split(DELIMITER_ESCAPE); 
 		this.managerId = tokens[0].toUpperCase();

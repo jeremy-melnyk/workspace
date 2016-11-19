@@ -32,6 +32,17 @@ public class ManagerClient extends WebClient {
 		}
 		String request = getId() + DELIMITER + editParameters;
 		String result = flightServer.editFlightRecord(request, fieldToEdit, newValue);
+		String operation = editParameters.split("\\|")[0];
+		System.out.println(operation + " : " + result);
+	}
+	
+	public void transferReservation(int flightRecordId, City otherCity){
+		FlightServer flightServer = getFlightServer();
+		if (flightServer == null){
+			System.out.println("FlightServer was null for " + city);
+		}
+		String request = getId() + DELIMITER + flightRecordId;
+		String result = flightServer.transferReservation(request, city.toString(), otherCity.toString());
 		System.out.println(result);
 	}
 	

@@ -3,6 +3,7 @@ package databases;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
@@ -14,30 +15,52 @@ import models.FlightReservation;
 import models.PassengerRecord;
 
 public class FlightReservationDbImpl implements FlightReservationDb {
-	private int RECORD_ID = 0;
+	private static int RECORD_ID = 0;
 	private HashMap<FlightClass, HashMap<Character, HashMap<Integer, FlightReservation>>> records;
-	private Lock idLock;
+	private static Lock idLock = new ReentrantLock(true);
 
 	public FlightReservationDbImpl() {
 		super();
 		this.records = new HashMap<FlightClass, HashMap<Character, HashMap<Integer, FlightReservation>>>();
-		this.idLock = new ReentrantLock(true);
 		initRecords();
 	}
 
 	@Override
 	public FlightReservation getFlightReservation(FlightClass flightClass, Character c, Integer id) {
 		HashMap<Character, HashMap<Integer, FlightReservation>> lastNameRecords = records.get(flightClass);
-		HashMap<Integer, FlightReservation> flightReservations = lastNameRecords.get(c);
+		HashMap<Integer, FlightReservation> flightReservations = lastNameRecords.get(Character.toUpperCase(c));
 		synchronized (flightReservations) {
 			return flightReservations.get(id);
 		}
 	}
 
 	@Override
+	public FlightReservation getFlightReservation(Integer id) {
+		for (Entry<FlightClass, HashMap<Character, HashMap<Integer, FlightReservation>>> entry : records.entrySet()) {
+			HashMap<Character, HashMap<Integer, FlightReservation>> lastNameRecords = entry.getValue();
+			for (Entry<Character, HashMap<Integer, FlightReservation>> lastNameEntry : lastNameRecords.entrySet()) {
+				HashMap<Integer, FlightReservation> flightReservations = lastNameEntry.getValue();
+				synchronized (flightReservations) {
+					if (flightReservations.containsKey(id)) {
+						return flightReservations.get(id);
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public HashMap<Integer, FlightReservation> getFlightReservations(FlightClass flightClass, Character c) {
+		HashMap<Character, HashMap<Integer, FlightReservation>> lastNameRecords = records.get(flightClass);
+		HashMap<Integer, FlightReservation> flightReservations = lastNameRecords.get(Character.toUpperCase(c));
+		return flightReservations;
+	}
+
+	@Override
 	public FlightReservation removeFlightReservation(FlightClass flightClass, Character c, Integer id) {
 		HashMap<Character, HashMap<Integer, FlightReservation>> lastNameRecords = records.get(flightClass);
-		HashMap<Integer, FlightReservation> flightReservations = lastNameRecords.get(c);
+		HashMap<Integer, FlightReservation> flightReservations = lastNameRecords.get(Character.toUpperCase(c));
 		synchronized (flightReservations) {
 			return flightReservations.remove(id);
 		}
@@ -56,19 +79,19 @@ public class FlightReservationDbImpl implements FlightReservationDb {
 					FlightReservation flightReservation = flightReservations.remove(key);
 					flightReservationsList.add(flightReservation);
 					--count;
-					if (count == 0){
+					if (count == 0) {
 						canBreak = true;
 					}
 				}
 			}
-			if (canBreak){
+			if (canBreak) {
 				break;
 			}
 		}
 		FlightReservation[] flightReservations = new FlightReservation[flightReservationsList.size()];
 		return flightReservationsList.toArray(flightReservations);
 	}
-	
+
 	@Override
 	public FlightReservation[] removeFlightReservations(int flightRecordId) {
 		List<FlightReservation> flightReservationsList = new ArrayList<FlightReservation>();
@@ -77,12 +100,14 @@ public class FlightReservationDbImpl implements FlightReservationDb {
 			for (Entry<Character, HashMap<Integer, FlightReservation>> lastNameEntry : lastNameRecords.entrySet()) {
 				HashMap<Integer, FlightReservation> flightReservations = lastNameEntry.getValue();
 				synchronized (flightReservations) {
-					for (Entry<Integer, FlightReservation> flightReservationEntry : flightReservations.entrySet()) {
-						Integer key = flightReservationEntry.getKey();
+					Iterator<Entry<Integer, FlightReservation>> iterator = flightReservations.entrySet().iterator();
+					while (iterator.hasNext()) {
+						Entry<Integer, FlightReservation> flightReservationEntry = iterator.next();
 						FlightReservation flightReservation = flightReservationEntry.getValue();
 						FlightRecord flightRecord = flightReservation.getFlightRecord();
-						if (flightRecord.getId() == flightRecordId){
-							flightReservationsList.add(flightReservations.remove(key));	
+						if (flightRecord.getId() == flightRecordId) {
+							flightReservationsList.add(flightReservation);
+							iterator.remove();
 						}
 					}
 				}
@@ -91,7 +116,7 @@ public class FlightReservationDbImpl implements FlightReservationDb {
 		FlightReservation[] flightReservations = new FlightReservation[flightReservationsList.size()];
 		return flightReservationsList.toArray(flightReservations);
 	}
-	
+
 	@Override
 	public FlightReservation[] getFlightReservations() {
 		List<FlightReservation> flightReservationsList = new ArrayList<FlightReservation>();
@@ -114,7 +139,7 @@ public class FlightReservationDbImpl implements FlightReservationDb {
 	public FlightReservation addFlightReservation(FlightClass flightClass, PassengerRecord passengerRecord,
 			FlightRecord flightRecord) {
 		boolean bookingResult = flightRecord.getFlightClasses().get(flightClass).acquireSeat();
-		if (!bookingResult){
+		if (!bookingResult) {
 			return null;
 		}
 		int id = 0;
@@ -126,8 +151,8 @@ public class FlightReservationDbImpl implements FlightReservationDb {
 		}
 
 		Character lastNameCharacter = Character.toUpperCase(passengerRecord.getLastName().charAt(0));
-		FlightReservation flightReservation = new FlightReservation(id, passengerRecord, flightRecord,
-				flightClass, new Date());
+		FlightReservation flightReservation = new FlightReservation(id, passengerRecord, flightRecord, flightClass,
+				new Date());
 
 		HashMap<Character, HashMap<Integer, FlightReservation>> lastNameRecords = records.get(flightClass);
 		HashMap<Integer, FlightReservation> flightReservations = lastNameRecords.get(lastNameCharacter);
@@ -135,6 +160,22 @@ public class FlightReservationDbImpl implements FlightReservationDb {
 			flightReservations.put(id, flightReservation);
 		}
 		return flightReservation;
+	}
+
+	@Override
+	public FlightReservation addFlightReservation(FlightReservation flightReservation) {
+		HashMap<Character, HashMap<Integer, FlightReservation>> lastNameRecords = records
+				.get(flightReservation.getFlightClass());
+		String lastName = flightReservation.getPassengerRecord().getLastName();
+		Character lastNameCharacter = Character.toUpperCase(lastName.charAt(0));
+		HashMap<Integer, FlightReservation> flightReservations = lastNameRecords.get(lastNameCharacter);
+		int id = flightReservation.getId();
+		synchronized (flightReservations) {
+			if (!flightReservations.containsKey(id)) {
+				flightReservations.put(id, flightReservation);
+			}
+			return flightReservations.get(id);
+		}
 	}
 
 	@Override

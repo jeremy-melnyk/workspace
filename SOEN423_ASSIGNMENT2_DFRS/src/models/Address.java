@@ -19,6 +19,20 @@ public class Address implements Serializable {
 		this.postalCode = postalCode;
 		this.country = country;
 	}
+	
+	public Address(String address){
+		super();
+		String[] tokens =  address.split(",");
+		this.street = tokens[0];
+		this.city = tokens[1];
+		this.province = tokens[2];
+		this.postalCode = tokens[3];
+		this.country = tokens[4];
+	}
+	
+	public String formatToString(){
+		return this.street + ", " + this.city + ", " + this.province + ", " + this.postalCode + ", " + this.country;
+	}
 
 	@Override
 	public int hashCode() {

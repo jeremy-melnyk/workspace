@@ -7,31 +7,73 @@ import java.net.InetAddress;
 import java.net.SocketException;
 
 import databases.DatabaseRepository;
+import databases.FlightRecordDb;
 import databases.FlightReservationDb;
-import enums.FlightClass;
+import databases.PassengerRecordDb;
+import models.FlightRecord;
+import models.FlightReservation;
+import models.PassengerRecord;
 
 public class TransferReservationHandler extends RequestHandler {
 
-	public TransferReservationHandler(InetAddress address, int port, String requestData, DatagramSocket socket,
+	public TransferReservationHandler(InetAddress address, int port, Request request, DatagramSocket socket,
 			DatabaseRepository databaseRepository) {
-		super(address, port, requestData, socket, databaseRepository);
+		super(address, port, request, socket, databaseRepository);
 	}
 
 	@Override
 	public void execute() {
+		DatagramSocket newSocket = null;
 		try {
-			// TODO : Implement transfer reservation protocol
-			FlightClass flightClass = FlightClass.valueOf(requestData);
-			FlightReservationDb flightReservationDb = databaseRepository.getFlightReservationDb();
-			int bookedFlightCount = flightReservationDb.getFlightReservationCount(flightClass);
-			String bookedFlightCountAsString = Integer.toString(bookedFlightCount);
-			byte[] message = bookedFlightCountAsString.getBytes();
-			DatagramPacket reply = new DatagramPacket(message, message.length, address, port);
-			socket.send(reply);
+			// Receive request
+			TransferReservationRequest transferReservationRequest = (TransferReservationRequest) request;
+			FlightReservation flightReservation = transferReservationRequest.getFlightReservation();
+			
+			// Send acknowledge
+			newSocket = new DatagramSocket();
+	        byte[] ackMessage = UdpHelper.booleanToByteArray(true);        
+			DatagramPacket ack = new DatagramPacket(ackMessage, ackMessage.length, address, port);
+			newSocket.send(ack);
+			
+			// Receive confirmation
+			byte[] buffer = new byte[BUFFER_SIZE];
+			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+			newSocket.receive(packet);
+			boolean confirmation = UdpHelper.byteArrayToBoolean(packet.getData());
+			if (!confirmation){
+				// Client cancelled request
+				return;
+			}
+			
+			// Transfer flight and passenger records
+			/*
+			PassengerRecordDb passengerRecordDb = databaseRepository.getPassengerRecordDb();
+			FlightRecordDb flightRecordDb = databaseRepository.getFlightRecordDb();
+			FlightRecord newFlightRecord = flightRecordDb.addFlightRecord(flightReservation.getFlightRecord());
+			PassengerRecord newPassengerRecord = passengerRecordDb.addPassengerRecord(flightReservation.getPassengerRecord());
+			flightReservation.setFlightRecord(newFlightRecord);
+			flightReservation.setPassengerRecord(newPassengerRecord);
+			*/
+			
+			// Transfer flight reservation
+			FlightReservationDb flightReservationDb = databaseRepository.getFlightReservationDb();		
+			flightReservationDb.addFlightReservation(flightReservation);
+			
+			boolean transferResult = flightReservation != null;
+			
+			// Send result
+			byte[] result = UdpHelper.booleanToByteArray(transferResult);
+			DatagramPacket resultMessage = new DatagramPacket(result, result.length, packet.getAddress(), packet.getPort());
+			newSocket.send(resultMessage);
+			newSocket.close();
 		} catch (SocketException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			if (newSocket != null){
+				newSocket.close();
+			}
 		}
 	}
 }

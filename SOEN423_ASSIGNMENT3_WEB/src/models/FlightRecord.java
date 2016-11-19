@@ -1,15 +1,16 @@
 package models;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import enums.City;
 import enums.FlightClass;
 
-public class FlightRecord {
+public class FlightRecord implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private Integer id;
 	private City origin;
 	private City destination;
@@ -108,9 +109,9 @@ public class FlightRecord {
 		StringBuilder sb = new StringBuilder();
 		sb.append("FlightRecord" + DELIMITER + id + DELIMITER + origin + DELIMITER + destination + DELIMITER
 				+ flightDate);
-		for (Entry<FlightClass, FlightSeats> entry : flightClasses.entrySet()) {
-			sb.append(DELIMITER + entry.getKey() + DELIMITER + entry.getValue());
-		}
+		sb.append(DELIMITER + FlightClass.FIRST + DELIMITER + flightClasses.get(FlightClass.FIRST));
+		sb.append(DELIMITER + FlightClass.BUSINESS + DELIMITER + flightClasses.get(FlightClass.BUSINESS));
+		sb.append(DELIMITER + FlightClass.ECONOMY + DELIMITER + flightClasses.get(FlightClass.ECONOMY));
 		return sb.toString();
 	}
 }

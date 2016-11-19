@@ -13,7 +13,7 @@ public interface IFlightDb {
 	public boolean addFlight(Flight flight);
 	public Flight getFlight(int recordId);
 	public Flight removeFlight(int recordId);
-	public Flight editFlight(int recordId, FlightParameter flightParameter, Object newValue);
+	public Flight editFlight(int recordId, FlightParameter flightParameter, String newValue);
 	
 	public boolean acquireSeat(int recordId, FlightClassEnum flightClassEnum);
 	public boolean releaseSeat(int recordId, FlightClassEnum flightClassEnum);

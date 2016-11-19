@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,12 +20,12 @@ public class FlightDb implements IFlightDb
 {
 	private Object recordCountLock = new Object();
 	private int RECORD_ID;
-	private ConcurrentHashMap<Integer, Flight> flights;
+	private HashMap<Integer, Flight> flights;
 	
 	public FlightDb() {
 		super();
 		this.RECORD_ID = 0;
-		this.flights = new ConcurrentHashMap<Integer, Flight>();
+		this.flights = new HashMap<Integer, Flight>();
 	}
 
 	@Override
@@ -71,12 +72,11 @@ public class FlightDb implements IFlightDb
 		{
 			return null;
 		}
-
 		return this.flights.remove(recordId);
 	}
 	
 	@Override
-	public Flight editFlight(int recordId, FlightParameter flightParameter, Object newValue)
+	public Flight editFlight(int recordId, FlightParameter flightParameter, String newValue)
 	{
 		if (recordId < 0)
 		{
@@ -103,25 +103,25 @@ public class FlightDb implements IFlightDb
 		int seats = 0;
 		switch (flightParameter) {
 		case BUSINESS_CLASS_SEATS:
-			seats = (int) newValue;
+			seats = Integer.parseInt(newValue);
 			flightClass = flight.getBusinessClass();
 			flightClass.setSeats(seats);
 			break;
 		case DATE:
-			Date date = (Date) newValue;
+			Date date = new Date(newValue);
 			flight.setDate(date);
 			break;
 		case DESTINATION:
-			City destination = (City) newValue;
+			City destination = new City(newValue);
 			flight.setDestination(destination);
 			break;
 		case ECONOMY_CLASS_SEATS:
-			seats = (int) newValue;
+			seats = Integer.parseInt(newValue);
 			flightClass = flight.getEconomyClass();
 			flightClass.setSeats(seats);
 			break;
 		case FIRST_CLASS_SEATS:
-			seats = (int) newValue;
+			seats = Integer.parseInt(newValue);
 			flightClass = flight.getFirstClass();
 			flightClass.setSeats(seats);
 			break;

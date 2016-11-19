@@ -1,6 +1,9 @@
 package models;
 
-public abstract class PersonRecord {
+import java.io.Serializable;
+
+public abstract class PersonRecord implements Serializable {
+	private static final long serialVersionUID = 1L;
 	protected Integer id;
 	protected String lastName;
 	protected String firstName;

@@ -1,9 +1,11 @@
 package models;
 
+import java.io.Serializable;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class FlightSeats {
+public class FlightSeats implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private int seats;
 	private int availableSeats;
 	private ReadWriteLock lock;

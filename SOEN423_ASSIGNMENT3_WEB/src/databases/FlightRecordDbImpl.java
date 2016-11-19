@@ -3,6 +3,7 @@ package databases;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
@@ -12,16 +13,16 @@ import db_models.AddFlightRecord;
 import enums.City;
 import enums.FlightClass;
 import models.FlightRecord;
+import models.FlightReservation;
 import models.FlightSeats;
 
 public class FlightRecordDbImpl implements FlightRecordDb {
-	private int RECORD_ID = 0;
+	private static int RECORD_ID = 0;
 	private HashMap<Date, HashMap<Integer, FlightRecord>> records;
-	private Lock idLock;
+	private static Lock idLock = new ReentrantLock(true);
 
 	public FlightRecordDbImpl() {
 		this.records = new HashMap<Date, HashMap<Integer, FlightRecord>>();
-		this.idLock = new ReentrantLock(true);
 	}
 
 	@Override
@@ -101,8 +102,14 @@ public class FlightRecordDbImpl implements FlightRecordDb {
 		for (Entry<Date, HashMap<Integer, FlightRecord>> entry : records.entrySet()) {
 			HashMap<Integer, FlightRecord> flightRecords = entry.getValue();
 			synchronized(flightRecords){
-				if(flightRecords.containsKey(id)){
-					return flightRecords.remove(id);
+				Iterator<Entry<Integer, FlightRecord>> iterator = flightRecords.entrySet().iterator();
+				while (iterator.hasNext()) {
+					Entry<Integer, FlightRecord> flightRecordEntry = iterator.next();
+					FlightRecord flightRecord = flightRecordEntry.getValue();
+					if (flightRecord.getId() == id) {
+						iterator.remove();
+						return flightRecord;
+					}
 				}
 			}
 		}
@@ -154,6 +161,22 @@ public class FlightRecordDbImpl implements FlightRecordDb {
 		synchronized (flightRecords) {
 			flightRecords.put(id, record);
 			return record;
+		}
+	}
+	
+	@Override
+	public FlightRecord addFlightRecord(FlightRecord flightRecord) {
+		Date date = flightRecord.getFlightDate();
+		if (!records.containsKey(date)){
+			addDate(date);
+		}
+		HashMap<Integer, FlightRecord> flightRecords = records.get(date);
+		int id = flightRecord.getId();
+		synchronized (flightRecords) {
+			if (!flightRecords.containsKey(id)){
+				flightRecords.put(id, flightRecord);
+			}
+			return flightRecords.get(id);
 		}
 	}
 	

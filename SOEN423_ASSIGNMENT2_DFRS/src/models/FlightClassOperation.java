@@ -14,6 +14,15 @@ public class FlightClassOperation implements Serializable {
 		this.managerId = managerId;
 		this.flightClassEnum = flightClassEnum;
 	}
+	
+	public static FlightClassOperation toFlightClassOperation(String input){
+		String[] tokens = input.split("-");
+		
+		String managerId = tokens[0];
+		FlightClassEnum flightClassEnum = FlightClassEnum.toFlightClass(tokens[1]);
+		
+		return new FlightClassOperation(managerId, flightClassEnum);
+	}
 
 	public String getManagerId() {
 		return managerId;

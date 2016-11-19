@@ -17,6 +17,16 @@ public class FlightRecordOperation implements Serializable
 		this.recordId = recordId;
 		this.flightDbOperation = flightDbOperation;
 	}
+	
+	public static FlightRecordOperation toFlightRecordOperation(String input){
+		String[] tokens = input.split("-");
+		
+		String managerId = tokens[0];
+		int recordId = Integer.parseInt(tokens[1]);
+		FlightDbOperation flightDbOperation = FlightDbOperation.toFlightDbOperation(tokens[2]);
+		
+		return new FlightRecordOperation(managerId, recordId, flightDbOperation);
+	}
 
 	public String getManagerId()
 	{

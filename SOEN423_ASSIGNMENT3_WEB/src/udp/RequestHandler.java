@@ -6,18 +6,19 @@ import java.net.InetAddress;
 import databases.DatabaseRepository;
 
 public abstract class RequestHandler {
+	protected final int BUFFER_SIZE = 1000;
 	protected final InetAddress address;
 	protected final int port;
-	protected final String requestData;
+	protected final Request request;
 	protected final DatagramSocket socket;
 	protected final DatabaseRepository databaseRepository;
 
-	public RequestHandler(InetAddress address, int port, String requestData, DatagramSocket socket,
+	public RequestHandler(InetAddress address, int port, Request request, DatagramSocket socket,
 			DatabaseRepository databaseRepository) {
 		super();
 		this.address = address;
 		this.port = port;
-		this.requestData = requestData;
+		this.request = request;
 		this.socket = socket;
 		this.databaseRepository = databaseRepository;
 	}

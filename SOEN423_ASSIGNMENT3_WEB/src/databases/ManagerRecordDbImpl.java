@@ -10,16 +10,15 @@ import enums.City;
 import models.ManagerRecord;
 
 public class ManagerRecordDbImpl implements ManagerRecordDb {
-	private int RECORD_ID = 0;
+	private static int RECORD_ID = 0;
 	private HashMap<Integer, ManagerRecord> records;
 	private ReadWriteLock recordsLock;
-	private Lock idLock;
+	private static Lock idLock = new ReentrantLock(true);
 	
 	public ManagerRecordDbImpl() {
 		super();
 		this.records = new HashMap<Integer, ManagerRecord>();
 		this.recordsLock = new ReentrantReadWriteLock(true);
-		this.idLock = new ReentrantLock(true);
 	}
 
 	@Override
@@ -71,5 +70,19 @@ public class ManagerRecordDbImpl implements ManagerRecordDb {
 			recordsLock.writeLock().unlock();
 		}
 		return record;
+	}
+
+	@Override
+	public ManagerRecord addManagerRecord(ManagerRecord managerRecord) {
+		recordsLock.writeLock().lock();
+		try {
+			int id = managerRecord.getId();
+			if (!records.containsKey(id)){
+				records.put(id, managerRecord);
+			}
+			return records.get(id);
+		} finally {
+			recordsLock.writeLock().unlock();
+		}
 	}
 }

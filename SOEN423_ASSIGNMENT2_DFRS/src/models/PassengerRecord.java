@@ -21,6 +21,19 @@ public class PassengerRecord implements Serializable {
 		this.flightClassEnum = flightClassEnum;
 		this.bookingDate = bookingDate;
 	}
+	
+	public String formatToString(){
+		return this.passenger.getLastName() + "&" + this.passenger.getFirstName() + "&" + this.flight.formatToString() + "&" + this.flightClassEnum.name() + "&" + this.bookingDate.toString();
+	}
+	
+	public static PassengerRecord toPassengerRecord(String input){
+		String[] tokens = input.split("&");
+		Flight flight = new Flight(tokens[2]);
+		FlightClassEnum flightClassEnum = FlightClassEnum.toFlightClass(tokens[3]);
+		Passenger p = new Passenger(tokens[1], tokens[0], "", new Address("", "", "", "", ""));
+		PassengerRecord record = new PassengerRecord(p, flight, flightClassEnum, flight.getDate());
+		return record;
+	}
 
 	public int getRecordId() {
 		return recordId;

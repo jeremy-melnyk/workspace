@@ -25,6 +25,31 @@ public class Flight extends ConcurrentObject implements Serializable {
 		this.businessClass = new FlightClass(FlightClassEnum.BUSINESS, businessClassSeats, businessClassSeats);
 		this.economyClass = new FlightClass(FlightClassEnum.ECONOMY, economyClassSeats, economyClassSeats);
 	}
+	
+	public Flight(String input){
+		String[] tokens = input.split(",");
+		
+		this.recordId =  -1;
+		this.destination = new City(tokens[1]);
+		this.date = new Date(tokens[2]);
+		int firstClassSeats = Integer.parseInt(tokens[3]);
+		int businessClassSeats = Integer.parseInt(tokens[4]);
+		int economyClassSeats = Integer.parseInt(tokens[5]);
+		this.firstClass = new FlightClass(FlightClassEnum.FIRST, firstClassSeats, firstClassSeats);
+		this.businessClass = new FlightClass(FlightClassEnum.BUSINESS, businessClassSeats, businessClassSeats);
+		this.economyClass = new FlightClass(FlightClassEnum.ECONOMY, economyClassSeats, economyClassSeats);
+	}
+	
+	public String formatToString(){
+		int recordId = this.recordId;
+		String cityAcronym = this.destination.getAcronym();
+		String city = this.destination.getName();
+		String date = this.date.toString();
+		String firstClassSeats = Integer.toString(this.firstClass.getSeats());
+		String businessClassSeats = Integer.toString(this.businessClass.getSeats());
+		String economyClassSeats = Integer.toString(this.economyClass.getSeats());
+		return recordId + "," + city + "-" + cityAcronym + "," + date + "," + firstClassSeats + "," + businessClassSeats + "," + economyClassSeats;
+	}
 
 	public int getRecordId() {
 		requestRead();

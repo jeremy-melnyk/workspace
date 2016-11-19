@@ -1,8 +1,11 @@
 package models;
 
+import java.io.Serializable;
+
 import enums.City;
 
-public class FlightServerAddress {
+public class FlightServerAddress implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private City city;
 	private int port;
 	private String host;

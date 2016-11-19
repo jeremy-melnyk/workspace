@@ -2,19 +2,19 @@ package manager_requests;
 
 import enums.FlightClass;
 
-public class BookedFlightCountRequest {
+public class BookedFlightCountClientRequest {
 	private final String DELIMITER = "|";
 	private final String DELIMITER_ESCAPE = "\\" + DELIMITER;
 	private String managerId;
 	private FlightClass flightClass;
 	
-	public BookedFlightCountRequest(String managerId, FlightClass flightClass) {
+	public BookedFlightCountClientRequest(String managerId, FlightClass flightClass) {
 		super();
 		this.managerId = managerId;
 		this.flightClass = flightClass;
 	}
 	
-	public BookedFlightCountRequest(String bookedFlightCountRequest) {
+	public BookedFlightCountClientRequest(String bookedFlightCountRequest) {
 		super();
 		String tokens[] = bookedFlightCountRequest.split(DELIMITER_ESCAPE); 
 		this.managerId = tokens[0].toUpperCase();

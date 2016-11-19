@@ -2,6 +2,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
+import org.omg.CORBA.ORB;
+
 import client.ManagerClient;
 import client.PassengerClient;
 import enums.FlightClassEnum;
@@ -15,7 +17,7 @@ public class ConsoleProgram
 {
 	public static void main(String[] args)
 	{
-		String BASE_URL = "rmi://localhost:1099/";
+		ORB orb = ORB.init(args, null);
 		Scanner keyboard = new Scanner(System.in);
 		while (true)
 		{
@@ -49,7 +51,7 @@ public class ConsoleProgram
 						cityChoice = "NDL";
 						break;
 					}
-					PassengerClient passengerClient = new PassengerClient(BASE_URL + cityChoice);
+					PassengerClient passengerClient = new PassengerClient(orb, cityChoice);
 					System.out.println("What is your first name?");
 					String firstName = keyboard.next();
 					System.out.println("What is your last name?");
@@ -58,7 +60,7 @@ public class ConsoleProgram
 					while (true)
 					{
 						System.out.println("Here are the available flights: ");
-						List<Flight> availableFlights = passengerClient.getAvailableFlights();
+						String[] availableFlights = passengerClient.getAvailableFlights();
 						passengerClient.displayFlights(availableFlights);
 						System.out.println("Choose a flight by selecting it's record ID");
 						flightChoice = keyboard.nextInt();
@@ -84,27 +86,28 @@ public class ConsoleProgram
 						{
 							break;
 						}
-						Flight chosenFlight = availableFlights.get(flightChoice);
 						Address address = new Address("Street", "City", "Province", "PostalCode", "Country");
-						if (passengerClient.bookFlight(firstName, lastName, address, "514-678-9890", chosenFlight, flightClass))
+						if (passengerClient.bookFlight(firstName, lastName, address, "514-678-9890", flightChoice, flightClass))
 						{
-							System.out.println("Booked " + flightClass.name() + " class on " + chosenFlight.getRecordId());
+							System.out.println("Booked " + flightClass.name() + " class on " + flightChoice);
 						} else
 						{
-							System.out.println("Unable to book " + flightClass.name() + " class on " + chosenFlight.getRecordId());
+							System.out.println("Unable to book " + flightClass.name() + " class on " + flightChoice);
 						}
 					}
 				} else if (choice == 2)
 				{
 					System.out.println("Please enter your manager ID");
 					String managerId = keyboard.next();
-					ManagerClient managerClient = new ManagerClient(BASE_URL);
+					String cityAcronym = managerId.substring(0,3);
+					ManagerClient managerClient = new ManagerClient(orb, cityAcronym);
 					managerClient.login(managerId);
 					while (true)
 					{
 						System.out.println("What would you like to do?");
 						System.out.println("1 : Get booked flight count");
 						System.out.println("2 : Edit flight record");
+						System.out.println("3 : Transfer reservation");
 						int operationChoice = keyboard.nextInt();
 						if (operationChoice == -1)
 						{
@@ -169,18 +172,18 @@ public class ConsoleProgram
 								System.out.println("Which Date? Enter as an integer i.e. 1000");
 								int dateEdit = keyboard.nextInt();
 								Flight newFlight = new Flight(destination, new Date(dateEdit), firstClassSeats, businessClassSeats, economyClassSeats);
-								boolean result = managerClient.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, newFlight);
+								boolean result = managerClient.editFlightRecord(0, FlightDbOperation.ADD, FlightParameter.NONE, newFlight.formatToString());
 								if (result)
 								{
 									System.out.println("Successfully added: " + newFlight);
-									managerClient.displayFlights(managerClient.getFlights());
+									managerClient.displayList(managerClient.getFlights());
 								} else
 								{
 									System.out.println("Failed to add: " + newFlight);
 								}
 								break;
 							case 2:
-								managerClient.displayFlights(managerClient.getFlights());
+								managerClient.displayList(managerClient.getFlights());
 								System.out.println("Which record Id?");
 								int recordId = keyboard.nextInt();
 								System.out.println("Which parameter?");
@@ -211,11 +214,11 @@ public class ConsoleProgram
 									}
 									System.out.println("How many seats?");
 									int seats = keyboard.nextInt();
-									boolean resultSeats = managerClient.editFlightRecord(recordId, FlightDbOperation.EDIT, flightParameter, seats);
+									boolean resultSeats = managerClient.editFlightRecord(recordId, FlightDbOperation.EDIT, flightParameter, Integer.toString(seats));
 									if (resultSeats)
 									{
 										System.out.println("Successfully edited: " + recordId + "");
-										managerClient.displayFlights(managerClient.getFlights());
+										managerClient.displayList(managerClient.getFlights());
 									} else
 									{
 										System.out.println("Failed to edit: " + recordId + "");
@@ -224,11 +227,11 @@ public class ConsoleProgram
 								case 2:
 									System.out.println("Which Date? Enter as an integer i.e. 1000");
 									int dateEditForRecord = keyboard.nextInt();
-									boolean resultDate = managerClient.editFlightRecord(recordId, FlightDbOperation.EDIT, FlightParameter.DATE, new Date(dateEditForRecord));
+									boolean resultDate = managerClient.editFlightRecord(recordId, FlightDbOperation.EDIT, FlightParameter.DATE, new Date(dateEditForRecord).toLocaleString());
 									if (resultDate)
 									{
 										System.out.println("Successfully edited: " + recordId + "");
-										managerClient.displayFlights(managerClient.getFlights());
+										managerClient.displayList(managerClient.getFlights());
 									} else
 									{
 										System.out.println("Failed to edit: " + recordId + "");
@@ -253,11 +256,11 @@ public class ConsoleProgram
 										destinationEdit = new City("NewDelhi", "NDL");
 										break;
 									}
-									boolean resultDestination = managerClient.editFlightRecord(recordId, FlightDbOperation.EDIT, FlightParameter.DESTINATION, destinationEdit);
+									boolean resultDestination = managerClient.editFlightRecord(recordId, FlightDbOperation.EDIT, FlightParameter.DESTINATION, destinationEdit.formatToString());
 									if (resultDestination)
 									{
 										System.out.println("Successfully edit: " + recordId + "");
-										managerClient.displayFlights(managerClient.getFlights());
+										managerClient.displayList(managerClient.getFlights());
 									} else
 									{
 										System.out.println("Failed to edit: " + recordId + "");
@@ -266,20 +269,55 @@ public class ConsoleProgram
 								}
 								break;
 							case 3:
-								managerClient.displayFlights(managerClient.getFlights());
+								managerClient.displayList(managerClient.getFlights());
 								System.out.println("Which record Id?");
 								int recordIdRemove = keyboard.nextInt();
 								boolean resultRemove = managerClient.editFlightRecord(recordIdRemove, FlightDbOperation.REMOVE, FlightParameter.NONE, null);
 								if (resultRemove)
 								{
 									System.out.println("Successfully removed: " + recordIdRemove);
-									managerClient.displayFlights(managerClient.getFlights());
+									managerClient.displayList(managerClient.getFlights());
 								} else
 								{
 									System.out.println("Failed to edit: " + recordIdRemove);
 								}
 								break;
 							}
+						case 3:
+							System.out.println("Select a record Id to transfer:");
+							managerClient.displayList(managerClient.getPassengerRecords());
+							int passengerRecordId = keyboard.nextInt();
+							System.out.println("To which destination?");
+							System.out.println("1 : MTL");
+							System.out.println("2 : WST");
+							System.out.println("3 : NDL");
+							int destinationChoiceTransfer = keyboard.nextInt();
+							City destinationTransfer = null;
+							switch (destinationChoiceTransfer)
+							{
+							case 1:
+								destinationTransfer = new City("Montreal", "MTL");
+								break;
+							case 2:
+								destinationTransfer = new City("Washington", "WST");
+								break;
+							case 3:
+								destinationTransfer = new City("NewDelhi", "NDL");
+								break;
+							}
+							if(passengerRecordId == -1){
+								break;
+							}
+							boolean resultTransfer = managerClient.transferReservation(passengerRecordId, destinationTransfer);
+							if (resultTransfer)
+							{
+								System.out.println("Successfully transferred: " + passengerRecordId);
+								managerClient.displayList(managerClient.getPassengerRecords());
+							} else
+							{
+								System.out.println("Failed to transfer: " + passengerRecordId);
+							}
+							break;
 						}
 					}
 				}

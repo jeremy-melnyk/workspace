@@ -16,12 +16,12 @@ public class PassengerRecordDb implements IPassengerRecordDb
 {
 	private Object recordCountLock = new Object();
 	private int RECORD_ID = 0;
-	private HashMap<Character, ConcurrentHashMap<Integer, PassengerRecord>> outerRecords;
+	private HashMap<Character, HashMap<Integer, PassengerRecord>> outerRecords;
 	
 	public PassengerRecordDb() {
 		super();
 		this.RECORD_ID = 0;
-		this.outerRecords = new HashMap<Character, ConcurrentHashMap<Integer, PassengerRecord>>();
+		this.outerRecords = new HashMap<Character, HashMap<Integer, PassengerRecord>>();
 		this.initPassengerRecordsList();
 	}
 
@@ -32,7 +32,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		Set<Character> outerKeys = this.outerRecords.keySet();		
 		for (Character outerKey : outerKeys)
 		{
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
 			count += innerRecords.size();
 		}
 		
@@ -46,7 +46,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		Set<Character> outerKeys = this.outerRecords.keySet();
 		for (Character outerKey : outerKeys)
 		{
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
 			Set<Integer> innerKeys = innerRecords.keySet();
 			for (Integer innerKey : innerKeys)
 			{
@@ -75,7 +75,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		
 		char firstLetter = (char) lastName.charAt(0);
 		firstLetter = Character.toUpperCase(firstLetter);
-		ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(firstLetter);
+		HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(firstLetter);
 
 		int recordId  = -1;
 		synchronized(recordCountLock)
@@ -97,7 +97,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		Set<Character> outerKeys = this.outerRecords.keySet();
 		for (Character outerKey : outerKeys)
 		{
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
 			if (innerRecords.containsKey(recordId))
 			{
 				return innerRecords.remove(recordId);		
@@ -116,7 +116,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		Set<Character> outerKeys = this.outerRecords.keySet();
 		for (Character outerKey : outerKeys)
 		{
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
 			if (innerRecords.containsKey(recordId))
 			{
 				return innerRecords.remove(recordId);		
@@ -132,7 +132,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		Set<Character> outerKeys = this.outerRecords.keySet();
 		for (Character outerKey : outerKeys)
 		{
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
 			Set<Integer> innerKeys = innerRecords.keySet();
 			for (Integer innerKey : innerKeys)
 			{
@@ -150,7 +150,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		Set<Character> outerKeys = this.outerRecords.keySet();
 		for (Character outerKey : outerKeys)
 		{
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
 			Set<Integer> innerKeys = innerRecords.keySet();
 			for (Integer innerKey : innerKeys)
 			{
@@ -170,7 +170,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		character = Character.toUpperCase(character);
 		List<PassengerRecord> passengerRecords = null;
 		if(this.outerRecords.containsKey(character)){
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(character);
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(character);
 			passengerRecords = new ArrayList<PassengerRecord>(innerRecords.values());
 		}
 		return passengerRecords;
@@ -183,7 +183,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		Set<Character> outerKeys = this.outerRecords.keySet();
 		for (Character outerKey : outerKeys)
 		{
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
 			Iterator<HashMap.Entry<Integer,PassengerRecord>> iterator = innerRecords.entrySet().iterator();
 			while (iterator.hasNext()) {
 				HashMap.Entry<Integer,PassengerRecord> entry = iterator.next();
@@ -202,7 +202,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		Set<Character> outerKeys = this.outerRecords.keySet();
 		for (Character outerKey : outerKeys)
 		{
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
 			Iterator<HashMap.Entry<Integer,PassengerRecord>> iterator = innerRecords.entrySet().iterator();
 			while (iterator.hasNext()) {
 				HashMap.Entry<Integer,PassengerRecord> entry = iterator.next();
@@ -224,7 +224,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		Set<Character> outerKeys = this.outerRecords.keySet();
 		for (Character outerKey : outerKeys)
 		{
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
 			Iterator<HashMap.Entry<Integer,PassengerRecord>> iterator = innerRecords.entrySet().iterator();
 			while (iterator.hasNext()) {
 				HashMap.Entry<Integer,PassengerRecord> entry = iterator.next();
@@ -249,7 +249,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		Set<Character> outerKeys = this.outerRecords.keySet();
 		for (Character outerKey : outerKeys)
 		{
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
+			HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(outerKey);
 			Iterator<HashMap.Entry<Integer,PassengerRecord>> iterator = innerRecords.entrySet().iterator();
 			while (iterator.hasNext()) {
 				HashMap.Entry<Integer,PassengerRecord> entry = iterator.next();
@@ -269,7 +269,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 	{
 		character = Character.toUpperCase(character);
 		List<PassengerRecord> passengerRecords = new ArrayList<PassengerRecord>();
-		ConcurrentHashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(character);
+		HashMap<Integer, PassengerRecord> innerRecords = this.outerRecords.get(character);
 		Set<Integer> innerKeys = innerRecords.keySet();
 		for (Integer innerKey : innerKeys)
 		{
@@ -283,7 +283,7 @@ public class PassengerRecordDb implements IPassengerRecordDb
 		char c = 'A';
 		while(c != 'Z' + 1)
 		{
-			ConcurrentHashMap<Integer, PassengerRecord> innerRecords = new ConcurrentHashMap<Integer, PassengerRecord>();
+			HashMap<Integer, PassengerRecord> innerRecords = new HashMap<Integer, PassengerRecord>();
 			this.outerRecords.put(c, innerRecords);
 			++c;
 		}

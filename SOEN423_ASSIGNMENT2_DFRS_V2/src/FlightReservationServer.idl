@@ -1,0 +1,14 @@
+module dfrs {
+	typedef sequence <string> Strings;
+
+	interface FlightReservationServer{
+		boolean bookFlight(in string firstName, in string lastName, in string address, in string phoneNumber, in string flightIdAndFlightClass);
+		string getBookedFlightCount(in string managerIdAndFlightClass);
+		boolean editFlightRecord(in string managerIdAndRecordIdAndDbOperation, in string flightParameter, in string newValue);	
+		boolean transferReservation(in string passengerRecordId, in string currentCity, in string otherCity);
+		Strings getFlights();
+		Strings getAvailableFlights();
+		Strings getManagerIds();
+		Strings getPassengerRecords();
+	};
+};

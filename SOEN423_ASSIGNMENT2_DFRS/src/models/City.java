@@ -13,6 +13,16 @@ public class City implements Serializable {
 		this.name = name;
 		this.acronym = acronym;
 	}
+	
+	public String formatToString(){
+		return this.acronym + "-" + this.name;
+	}
+	
+	public City(String input){
+		String[] tokens = input.split("-");
+		this.acronym = tokens[0];
+		this.name = tokens[1];
+	}
 
 	public String getName() {
 		return name;

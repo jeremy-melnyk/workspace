@@ -1,24 +1,22 @@
 package udp;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.concurrent.Callable;
 
 import enums.FlightClass;
 import enums.UdpRequestType;
 import models.FlightServerAddress;
 
-public class BookedFlightCountTask implements Callable<String> {
-	private final String DELIMITER = "|";
-	private final int BUFFER_SIZE = 1000;
-	private final FlightServerAddress flightServerAddress;
+public class BookedFlightCountTask extends Task<String> {
 	private final FlightClass flightClass;
 
 	public BookedFlightCountTask(FlightServerAddress flightServerAddress, FlightClass flightClass) {
-		this.flightServerAddress = flightServerAddress;
+		super(flightServerAddress);
 		this.flightClass = flightClass;
 	}
 
@@ -31,17 +29,20 @@ public class BookedFlightCountTask implements Callable<String> {
 		DatagramSocket socket = null;
 		try {
 			socket = new DatagramSocket();
-			String messageToSend = UdpRequestType.BOOKED_FLIGHTCOUNT + DELIMITER + flightClass.name();
-			byte[] message = messageToSend.getBytes();
+			Request request = new BookedFlightCountRequest(UdpRequestType.BOOKED_FLIGHTCOUNT, flightClass);
+			byte[] message = UdpHelper.getByteArray(request);
 			InetAddress host = InetAddress.getByName(flightServerAddress.getHost());
 			int serverPort = flightServerAddress.getPort();
-			DatagramPacket request = new DatagramPacket(message, message.length, host, serverPort);
-			socket.send(request);
+			DatagramPacket requestPacket = new DatagramPacket(message, message.length, host, serverPort);
+			socket.send(requestPacket);
 			byte[] buffer = new byte[BUFFER_SIZE];
 			DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
 			socket.receive(reply);
-			String replyAsString = new String(reply.getData()).trim();
-			int flightCount = Integer.parseInt(replyAsString);
+			int flightCount;
+			ByteArrayInputStream byteInputStream = new ByteArrayInputStream(reply.getData());
+			DataInputStream dataInputStream = new DataInputStream(byteInputStream);
+			flightCount = dataInputStream.readInt();
+			dataInputStream.close();
 			return flightServerAddress.getCity() + " " + flightCount;
 		} catch (SocketException e) {
 			e.printStackTrace();

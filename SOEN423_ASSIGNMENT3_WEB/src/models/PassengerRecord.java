@@ -1,6 +1,7 @@
 package models;
 
 public class PassengerRecord extends PersonRecord {
+	private static final long serialVersionUID = 1L;
 	private Address address;
 	private String phoneNumber;
 
@@ -9,7 +10,7 @@ public class PassengerRecord extends PersonRecord {
 		this.address = address;
 		this.phoneNumber = phoneNumber;
 	}
-
+	
 	public Address getAddress() {
 		return address;
 	}

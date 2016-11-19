@@ -1,113 +1,19 @@
 module dfrs {
-	
-	enum FlightClassEnum {
-		FIRST, BUSINESS, ECONOMY
-	};
-	
-	enum FlightDbOperation {
-		ADD, REMOVE, EDIT
-	};
-	
-	enum FlightParameter {
-		FIRST_CLASS_SEATS, BUSINESS_CLASS_SEATS, ECONOMY_CLASS_SEATS, DESTINATION, DATE, NONE
-	};
-	
-	interface Date {
-		Date getDate();
-		void setDate(in long date);
-	};
-	
-	interface Address {
-		string getStreet();
-		void setStreet(in string street);
-		string getCity();
-		void setCity(in string city);
-		string getProvince();
-		void setProvince(in string province);
-		string getPostalCode();
-		void setPostalCode(in string postalCode);
-		string getCountry();
-		void setCountry(in string Country);
-	};
-	
-	interface City {
-		string getName();
-		void setName(in string name);
-		string getAcronym();
-		void setAcronym(in string acronym);
-	};
-	
-	interface FlightServerAddress {
-		string getName();
-		string setName(in string name);
-		long getUdpPort();
-		void setUdpPort(in long udpPort);
-		string getHost();
-		string setHost(in string host);
-	};
-	
-	interface FlightClassOperation {
-		string getManagerId();
-		void setManagerId(in string managerId);
-		FlightClassEnum getFlightClassEnum();
-		void setFlightClassEnum(in FlightClassEnum flightClassEnum);
-	};
-	
-	interface FlightRecordOperation {
-		long getManagerId();
-		void setManagerId(in long managerId);
-		long getRecordId();
-		long setRecord(in long recordId);
-		FlightDbOperation getFlightDbOperation();
-		FlightDbOperation setFlightDbOperation(in FlightDbOperation flightDbOperation);
-	};
-	
-	interface FlightClass {
-		FlightClassEnum getFlightClassEnum();
-		void setFlightClassEnum(in FlightClassEnum flightClassEnum);
-		long getSeats();
-		void setSeats(in long seats);
-		long getAvailableSeats();
-		void setAvailableSeats(in long availableSeats);
-	};
-	
-	interface Flight {
-		long getRecordId();
-		void setRecordId(in long recordId);
-		City getDestination();
-		void setDestination(in City destination);
-		Date getDate();
-		Date setDate(in Date date);
-		FlightClass getFirstClass();
-		FlightClass setFirstClass(in FlightClass flightClass);
-		FlightClass getBusinessClass();
-		FlightClass setBusinessClass(in FlightClass flightClass);
-		FlightClass getEconomyClass();
-		FlightClass setEconomyClass(in FlightClass flightClass);
-	};
-	
-	interface FlightWithClass {
-		Flight getFlight();
-		FlightClassEnum getFlightClassEnum();
-		void setFlightClassEnum(in FlightClassEnum flightClassEnum);
-	};
-	
-	typedef sequence <Flight> Flights;
-	typedef sequence <FlightServerAddress> FlightServerAddresses;
 	typedef sequence <string> Strings;
 
 	interface FlightReservationServer{
-		boolean bookFlight(in string firstName, in string lastName, in Address address, in string phoneNumber, in FlightWithClass flightWithClass);
-		string getBookedFlightCount(in FlightClassOperation flightClassOperation);
-		boolean editFlightRecord(in FlightRecordOperation recordOperation, in FlightParameter flightParameter, in Object newValue);
-		
-		Flights getFlights();
-		Flights getAvailableFlights();
+		boolean bookFlight(in string firstName, in string lastName, in string Address, in string phoneNumber, in string flightWithClass);
+		string getBookedFlightCount(in string flightClassOperation);
+		boolean editFlightRecord(in string recordOperation, in string flightParameter, in string newValue);	
+		boolean transferReservation(in string passengerRecordId, in string currentCity, in string otherCity);
+		Strings getFlights();
+		Strings getAvailableFlights();
 		Strings getManagerIds();
+		Strings getPassengerRecords();
 	
-		void serveRequests();
+		void serveRequests(in float udpPort);
 		void registerServer();
 		void unregisterServer();
-		void setOtherServers(in FlightServerAddresses otherServers);
+		void setOtherServers(in Strings otherServers);
 	};
 };

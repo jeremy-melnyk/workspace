@@ -4,11 +4,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -18,28 +13,29 @@ import java.util.concurrent.Future;
 
 import database.IFlightDb;
 import database.IPassengerRecordDb;
+import dfrs.FlightReservationServerHelper;
+import dfrs.FlightReservationServerPOA;
 import enums.FlightClassEnum;
 import enums.FlightDbOperation;
 import enums.FlightParameter;
 import enums.LogOperation;
 import log.ILogger;
 import models.Address;
+import models.City;
 import models.Flight;
 import models.FlightClass;
 import models.FlightClassOperation;
 import models.FlightCountResult;
 import models.FlightServerAddress;
-import models.FlightWithClass;
 import models.Passenger;
 import models.PassengerRecord;
 import models.FlightRecordOperation;
 
-public class FlightReservationServer implements IFlightReservationServer
+public class FlightReservationServerImpl extends FlightReservationServerPOA
 {
 	private final int BUFFER_SIZE = 1000;
 	private final int THREAD_POOL_SIZE = 16;
     private final ExecutorService threadPool;
-	private int rmiPort;
 	private int udpPort;
 	private List<FlightServerAddress> otherServers;
 	private String cityAcronym;
@@ -47,11 +43,7 @@ public class FlightReservationServer implements IFlightReservationServer
 	private IFlightDb flightDb;
 	private List<String> managerIds;
 	private ILogger logger;
-	public FlightReservationServer(int rmiPort, int udpPort, int threadPoolSize, List<FlightServerAddress> otherServers, String cityAcronym, IPassengerRecordDb passengerRecordDb, IFlightDb flightDb, List<String> managerIds, ILogger logger) {
-		if (rmiPort < 0)
-		{
-			throw new IllegalArgumentException();
-		}
+	public FlightReservationServerImpl(int udpPort, int threadPoolSize, List<FlightServerAddress> otherServers, String cityAcronym, IPassengerRecordDb passengerRecordDb, IFlightDb flightDb, List<String> managerIds, ILogger logger) {
 		if (udpPort < 0)
 		{
 			throw new IllegalArgumentException();
@@ -86,7 +78,6 @@ public class FlightReservationServer implements IFlightReservationServer
 		}
 		
 		this.threadPool = Executors.newFixedThreadPool(threadPoolSize);
-		this.rmiPort = rmiPort;
 		this.udpPort = udpPort;
 		this.otherServers = otherServers;
 		this.cityAcronym = cityAcronym;
@@ -97,20 +88,22 @@ public class FlightReservationServer implements IFlightReservationServer
 	}
 
 	@Override
-	public boolean bookFlight(String firstName, String lastName, Address address, String phoneNumber, FlightWithClass flightWithClass) throws RemoteException
+	public boolean bookFlight(String firstName, String lastName, String address, String phoneNumber, String flightWithClass)
 	{
-		Passenger passenger = new Passenger(firstName, lastName, phoneNumber, address);
-		Flight flight = flightWithClass.getFlight();
-		FlightClassEnum flightClassEnum = flightWithClass.getFlightClassEnum();
-		Flight existingFlight = this.flightDb.getFlight(flight.getRecordId());
+		Passenger passenger = new Passenger(firstName, lastName, phoneNumber, new Address(address));
+		
+		String[] tokens = flightWithClass.split("-");
+		int flightId = Integer.parseInt(tokens[0]);
+		FlightClassEnum flightClassEnum = FlightClassEnum.toFlightClass(tokens[1]);	
+		Flight existingFlight = this.flightDb.getFlight(flightId);
 		if (existingFlight == null){
-			this.logger.log(this.cityAcronym, LogOperation.BOOK_FLIGHT.name(), flight.toString() + " no longer exists!");
+			this.logger.log(this.cityAcronym, LogOperation.BOOK_FLIGHT.name(), flightId + " no longer exists!");
 			return false;
 		}
 		int flightRecordId = existingFlight.getRecordId();
 		boolean acquireSeatResult = this.flightDb.acquireSeat(flightRecordId, flightClassEnum);
 		if(acquireSeatResult){
-			PassengerRecord passengerRecord = new PassengerRecord(passenger, flight, flightClassEnum, new Date());
+			PassengerRecord passengerRecord = new PassengerRecord(passenger, existingFlight, flightClassEnum, new Date());
 			boolean result;
 			try
 			{
@@ -130,17 +123,22 @@ public class FlightReservationServer implements IFlightReservationServer
 	}
 	
 	@Override
-	public void setOtherServers(List<FlightServerAddress> otherServers)
+	public void setOtherServers(String[] otherServers)
 	{
-		this.otherServers = otherServers;
+		List<FlightServerAddress> otherServersOutput = new ArrayList<FlightServerAddress>();
+		for (String s : otherServers){
+			otherServersOutput.add(FlightServerAddress.toFlightServerAddress(s));
+		}
+		this.otherServers = otherServersOutput;
 	}
 
 	@Override
-	public String getBookedFlightCount(FlightClassOperation flightClassOperation) throws RemoteException
+	public String getBookedFlightCount(String flightClassOperation)
 	{		
 		StringBuilder builder = new StringBuilder();
-		FlightClassEnum flightClass = flightClassOperation.getFlightClassEnum();
-		String managerId = flightClassOperation.getManagerId();
+		FlightClassOperation flightClassOperationObject = FlightClassOperation.toFlightClassOperation(flightClassOperation);
+		FlightClassEnum flightClass = flightClassOperationObject.getFlightClassEnum();
+		String managerId = flightClassOperationObject.getManagerId();
 		try
 		{
 			final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
@@ -165,19 +163,31 @@ public class FlightReservationServer implements IFlightReservationServer
 	}
 	
 	@Override
-	public List<Flight> getFlights() throws RemoteException
+	public String[] getFlights()
 	{
-		return this.flightDb.getFlights();
+		List<Flight> flightList = this.flightDb.getFlights();
+		int size = flightList.size();
+		String[] flights = new String[size];
+		for(int i = 0; i < size; ++i){
+			flights[i] = flightList.get(i).toString();
+		}
+		return flights;
 	}
 	
 	@Override
-	public List<Flight> getAvailableFlights() throws RemoteException
+	public String[] getAvailableFlights()
 	{
-		return this.flightDb.getAvailableFlights();
+		List<Flight> availableFlights = this.flightDb.getAvailableFlights();
+		int size = availableFlights.size();
+		String[] flights = new String[size];
+		for(int i = 0; i < size; ++i){
+			flights[i] = availableFlights.get(i).toString();
+		}
+		return flights;
 	}
 	
 	@Override
-	public boolean editFlightRecord(FlightRecordOperation flightRecordOperation, FlightParameter flightParameter, Object newValue) throws RemoteException
+	public boolean editFlightRecord(String flightRecordOperation, String flightParameter, String newValue)
 	{
 		if (flightRecordOperation == null){
 			throw new IllegalArgumentException();
@@ -186,16 +196,20 @@ public class FlightReservationServer implements IFlightReservationServer
 			throw new IllegalArgumentException();
 		}
 		
-		FlightDbOperation flightDbOperation = flightRecordOperation.getFlightDbOperation();
-		String managerId = flightRecordOperation.getManagerId();
+		FlightRecordOperation flightRecordOperationObject = FlightRecordOperation.toFlightRecordOperation(flightRecordOperation);
+		
+		FlightDbOperation flightDbOperation = flightRecordOperationObject.getFlightDbOperation();
+		String managerId = flightRecordOperationObject.getManagerId();
+		
+		FlightParameter flightParameterEnum = FlightParameter.toFlightParameter(flightParameter);
 		
 		switch(flightDbOperation){
 		case ADD:
 			return addFlight(flightRecordOperation, newValue);
 		case REMOVE:
-			return removeFlight(flightRecordOperation);
+			return removeFlight(flightRecordOperationObject);
 		case EDIT:
-			return editFlight(flightRecordOperation, flightParameter, newValue);
+			return editFlight(flightRecordOperationObject, flightParameterEnum, newValue);
 		default:
 			this.logger.log(this.cityAcronym, LogOperation.UNKNOWN.name(), managerId + " : An error occured, nothing happened");
 			this.logger.log(managerId, LogOperation.UNKNOWN.name(), "An error occured, nothing happened");
@@ -203,15 +217,16 @@ public class FlightReservationServer implements IFlightReservationServer
 		}		
 	}
 
-	private boolean addFlight(FlightRecordOperation flightRecordOperation, Object newValue) {
-		String managerId = flightRecordOperation.getManagerId();
+	private boolean addFlight(String flightRecordOperation, String newValue) {
+		FlightRecordOperation flightRecordOperationObject = FlightRecordOperation.toFlightRecordOperation(flightRecordOperation);
+		String managerId = flightRecordOperationObject.getManagerId();
 		if(newValue == null){
 			this.logger.log(this.cityAcronym, LogOperation.ILLEGAL_ARGUMENT_EXCEPTION.name(), managerId + " : newValue was null");
 			this.logger.log(managerId, LogOperation.ILLEGAL_ARGUMENT_EXCEPTION.name(), "newValue was null");
 			return false;
 		}
 		
-		Flight flight = (Flight) newValue;
+		Flight flight = new Flight(newValue);
 		boolean result = flightDb.addFlight(flight);
 		if(result)
 		{
@@ -241,7 +256,7 @@ public class FlightReservationServer implements IFlightReservationServer
 		return flight != null;
 	}
 	
-	private boolean editFlight(FlightRecordOperation flightRecordOperation, FlightParameter flightParameter, Object newValue) {
+	private boolean editFlight(FlightRecordOperation flightRecordOperation, FlightParameter flightParameter, String newValue) {
 		String managerId = flightRecordOperation.getManagerId();
 		if(flightParameter == null){
 			this.logger.log(this.cityAcronym, LogOperation.ILLEGAL_ARGUMENT_EXCEPTION.name(), managerId + " : flightParameter was null");
@@ -350,26 +365,66 @@ public class FlightReservationServer implements IFlightReservationServer
 		return flight != null;
 	}
 	
-	private List<PassengerRecord> correctSeatOverflow(int flightRecordId, FlightClassEnum flightClassEnum, int seatOverflow) {
-		if (seatOverflow >= 0){
-			return new ArrayList<PassengerRecord>();
-		}
+	@Override
+	public boolean transferReservation(String passengerRecordId, String currentCity, String otherCity) {
+		String[] tokens = passengerRecordId.split("-");
+		String managerId = tokens[0].toUpperCase();
+		int recordId = Integer.parseInt(tokens[1]);
 		
-		int numOfRecords = -seatOverflow;
-		return passengerRecordDb.removeRecords(flightRecordId, flightClassEnum, numOfRecords);
+		City currentCityObject = new City(currentCity);
+		City otherCityObject = new City(otherCity);
+		
+		try
+		{
+			final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+			PassengerRecord record = this.passengerRecordDb.getRecord(recordId);
+			if(record == null){
+				this.logger.log(this.cityAcronym, LogOperation.EDIT_FLIGHT.name(), managerId + ": Record " + recordId + " does not exist in the current city.");
+				return false;
+			}
+			String queryCityAcronym = otherCityObject.getAcronym() + "2";
+			FlightServerAddress fsa = null;
+			for(FlightServerAddress s : otherServers){
+				if(s.getName().equals(queryCityAcronym)){
+					fsa = s;
+				}
+			}
+			if(fsa == null){
+				this.logger.log(this.cityAcronym, LogOperation.EDIT_FLIGHT.name(), managerId + ": Could not locate server.");
+				return false;
+			}
+			final Future<Boolean> transferResult = executorService.submit(new TransferReservationTask(record, fsa));
+			boolean result = transferResult.get();
+			if(!result){
+				this.logger.log(this.cityAcronym, LogOperation.EDIT_FLIGHT.name(), "Transfer reservation operation was not completed.");
+			} else {
+				this.passengerRecordDb.removeRecord(recordId);
+			}
+			return result;
+		} catch (Exception e)
+		{
+			this.logger.log(this.cityAcronym, LogOperation.EDIT_FLIGHT.name(), e.getMessage());
+			this.logger.log(managerId, LogOperation.EDIT_FLIGHT.name(), e.getMessage());
+			return false;
+		}
 	}
 	
 	@Override
-	public void serveRequests(){		
+	public void serveRequests(float udpPort){		
 		DatagramSocket socket = null;
 		try
 		{
-			socket = new DatagramSocket(udpPort);
+			socket = new DatagramSocket((int)udpPort);
 			while(true){
 				byte[] buffer = new byte[BUFFER_SIZE];
 				DatagramPacket request = new DatagramPacket(buffer, buffer.length);
 				socket.receive(request);
-				threadPool.execute(new BookedFlightCountHandler(socket, request, passengerRecordDb));
+				if(udpPort == 1100 || udpPort == 1101 || udpPort == 1102)
+				{
+					threadPool.execute(new BookedFlightCountHandler(socket, request, passengerRecordDb));	
+				} else {
+					threadPool.execute(new TransferReservationHandler(socket, request, passengerRecordDb, flightDb));	
+				}
 			}
 		} catch (SocketException e)
 		{
@@ -385,26 +440,45 @@ public class FlightReservationServer implements IFlightReservationServer
 	}
 	
 	@Override
-	public void registerServer() throws Exception
+	public void registerServer()
 	{
-		Remote remote = UnicastRemoteObject.exportObject(this, this.rmiPort);
-		Registry registry = LocateRegistry.getRegistry(this.rmiPort);	
-		registry.rebind(this.cityAcronym, remote);
-		this.logger.log(this.cityAcronym, LogOperation.REGISTER_SERVER.name(), "Port: " + this.rmiPort);
+		
 	}
 
 	@Override
-	public void unregisterServer() throws Exception
+	public void unregisterServer()
 	{
-		Registry registry = LocateRegistry.getRegistry(this.rmiPort);
-		registry.unbind(this.cityAcronym);
-		UnicastRemoteObject.unexportObject(this, true);
-		this.logger.log(this.cityAcronym, LogOperation.UNREGISTER_SERVER.name(), "Port: " + this.rmiPort);
+
 	}
 
 	@Override
-	public List<String> getManagerIds() throws RemoteException
-	{
-		return managerIds;
+	public String[] getManagerIds() {
+		List<String> managerList = this.managerIds;
+		int size = managerList.size();
+		String[] managers = new String[size];
+		for(int i = 0; i < size; ++i){
+			managers[i] = managerList.get(i).toString();
+		}
+		return managers;
+	}
+	
+	private List<PassengerRecord> correctSeatOverflow(int flightRecordId, FlightClassEnum flightClassEnum, int seatOverflow) {
+		if (seatOverflow >= 0){
+			return new ArrayList<PassengerRecord>();
+		}
+		
+		int numOfRecords = -seatOverflow;
+		return passengerRecordDb.removeRecords(flightRecordId, flightClassEnum, numOfRecords);
+	}
+
+	@Override
+	public String[] getPassengerRecords() {
+		List<PassengerRecord> passengerList = this.passengerRecordDb.getRecords();
+		int size = passengerList.size();
+		String[] passengers = new String[size];
+		for(int i = 0; i < size; ++i){
+			passengers[i] = passengerList.get(i).toString();
+		}
+		return passengers;
 	}
 }

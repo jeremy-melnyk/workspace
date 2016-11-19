@@ -1,5 +1,8 @@
 package udp;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
@@ -7,7 +10,6 @@ import databases.DatabaseRepository;
 import enums.UdpRequestType;
 
 public class RequestDispatcher implements Runnable {
-	private final String DELIMITER = "\\|";
 	private final DatagramSocket socket;
 	private final DatagramPacket packet;
 	private final DatabaseRepository databaseRepository;
@@ -25,24 +27,27 @@ public class RequestDispatcher implements Runnable {
 	}
 
 	private void handleRequest() {
-		String message = new String(packet.getData());
-		Request request = parseMessage(message);
-		String requestData = request.getData().trim();
+		Request request = null;
+		try {
+			ByteArrayInputStream byteInputStream = new ByteArrayInputStream(packet.getData());
+			ObjectInputStream objectInputStream = new ObjectInputStream(byteInputStream);
+			request = (Request)objectInputStream.readObject();
+			objectInputStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return;
+		}
 		UdpRequestType requestType = request.getRequestType();
 		switch (requestType) {
 		case BOOKED_FLIGHTCOUNT:
-			new BookedFlightCountHandler(packet.getAddress(), packet.getPort(), requestData, socket, databaseRepository).execute();
+			new BookedFlightCountHandler(packet.getAddress(), packet.getPort(), request, socket, databaseRepository).execute();
 			break;
 		case TRANSFER_RESERVATION:
-			new TransferReservationHandler(packet.getAddress(), packet.getPort(), requestData, socket, databaseRepository).execute();
+			new TransferReservationHandler(packet.getAddress(), packet.getPort(), request, socket, databaseRepository).execute();
 			break;
 		}
-	}
-
-	private Request parseMessage(String message) {
-		String[] tokens = message.split(DELIMITER);
-		UdpRequestType requestType = UdpRequestType.valueOf(tokens[0]);
-		String data = tokens[1];
-		return new Request(requestType, data);
 	}
 }

@@ -18,4 +18,5 @@ public interface FlightRecordDb {
 	public FlightRecord removeFlightRecord(Integer id);
 	public FlightRecord addFlightRecord(City origin, City destination, Date date, HashMap<FlightClass, FlightSeats> flightClasses);
 	public FlightRecord addFlightRecord(AddFlightRecord addFlightRecord);
+	public FlightRecord addFlightRecord(FlightRecord flightRecord);
 }

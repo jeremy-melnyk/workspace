@@ -37,7 +37,7 @@ public class PassengerClient extends WebClient {
 			return;
 		}
 		String result = flightServer.bookFlight(firstName, lastName, address.toString(), phoneNumber, destination, date, flightClass);
-		if(result.equals("No flight available")){
+		if(result.equals("No flight seat available.")){
 			System.out.println("BOOKFLIGHT_FAIL: " + result);
 		} else {
 			System.out.println("BOOKFLIGHT_SUCCESS: " + result);

@@ -1,6 +1,7 @@
 package databases;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -10,16 +11,15 @@ import models.Address;
 import models.PassengerRecord;
 
 public class PassengerRecordDbImpl implements PassengerRecordDb {
-	private int RECORD_ID = 0;
+	private static int RECORD_ID = 0;
 	private HashMap<Integer, PassengerRecord> records;
 	private ReadWriteLock recordsLock;
-	private Lock idLock;
+	private static Lock idLock = new ReentrantLock(true);
 
 	public PassengerRecordDbImpl() {
 		super();
 		this.records = new HashMap<Integer, PassengerRecord>();
 		this.recordsLock = new ReentrantReadWriteLock(true);
-		this.idLock = new ReentrantLock(true);
 	}
 
 	@Override
@@ -27,6 +27,23 @@ public class PassengerRecordDbImpl implements PassengerRecordDb {
 		recordsLock.readLock().lock();
 		try {
 			return records.get(id);
+		} finally {
+			recordsLock.readLock().unlock();
+		}
+	}
+	
+	@Override
+	public PassengerRecord getPassengerRecord(String firstName, String lastName) {
+		recordsLock.readLock().lock();
+		try {
+			for (Entry<Integer, PassengerRecord> entry : records.entrySet()){
+				PassengerRecord passengerRecord = entry.getValue();
+				if(passengerRecord.getFirstName().equalsIgnoreCase(firstName)
+						&& passengerRecord.getLastName().equalsIgnoreCase(lastName)){
+					return passengerRecord;
+				}
+			}
+			return null;
 		} finally {
 			recordsLock.readLock().unlock();
 		}
@@ -73,5 +90,19 @@ public class PassengerRecordDbImpl implements PassengerRecordDb {
 			recordsLock.writeLock().unlock();
 		}
 		return record;
+	}
+
+	@Override
+	public PassengerRecord addPassengerRecord(PassengerRecord passengerRecord) {
+		recordsLock.writeLock().lock();
+		try {
+			int id = passengerRecord.getId();
+			if (!records.containsKey(id)){
+				records.put(id, passengerRecord);
+			}
+			return records.get(id);
+		} finally {
+			recordsLock.writeLock().unlock();
+		}
 	}
 }

@@ -1,15 +1,16 @@
 package udp;
 
+import java.io.Serializable;
+
 import enums.UdpRequestType;
 
-public class Request {
+public class Request implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private UdpRequestType requestType;
-	private String data;
 
-	public Request(UdpRequestType requestType, String data) {
+	public Request(UdpRequestType requestType) {
 		super();
 		this.requestType = requestType;
-		this.data = data;
 	}
 
 	public UdpRequestType getRequestType() {
@@ -18,13 +19,5 @@ public class Request {
 
 	public void setRequestType(UdpRequestType requestType) {
 		this.requestType = requestType;
-	}
-
-	public String getData() {
-		return data;
-	}
-
-	public void setData(String data) {
-		this.data = data;
 	}
 }
